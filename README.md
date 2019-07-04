@@ -13,10 +13,9 @@ If you do so, you will need to edit the port number (and potentially the host na
 
 ## Test
 0. MechanismToCode> cd test
-1. MechanismToCode/test> chmod u+x sequence.calls.csh
-2. MechanismToCode/test> ./sequence.calls.csh chapman.json
-3. MechanismToCode/test> diff kinetics\_utilities.F90 expected/kinetics\_utilities.F90
-4. MechanismToCode/test> diff factor\_solve\_utilites.F90 expected/factor\_solve\_utilities.F90
+1. MechanismToCode/test> ./sequence.calls.csh chapman.json
+2. MechanismToCode/test> diff kinetics\_utilities.F90 expected/kinetics\_utilities.F90
+3. MechanismToCode/test> diff factor\_solve\_utilities.F90 expected/factor\_solve\_utilities.F90
 
 You may see minor differences with the last two diffs, such as the tag (version) of the git commit
 
