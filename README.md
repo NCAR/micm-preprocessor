@@ -11,9 +11,10 @@ Web service converting JSON representation of chemical mechanism into code to be
 ## Test
 0. MechanismToCode> cd test
 1. MechanismToCode/test> chmod u+x sequence.calls.csh
-2. MechanismToCode/test> ./sequence.calls.csh chapman.json
-3. MechanismToCode/test> diff kinetics\_utilities.F90 expected/kinetics\_utilities.F90
-4. MechanismToCode/test> diff factor\_solve\_utilites.F90 expected/factor\_solve\_utilities.F90
+2. MechanismToCode/test> edit server name and port number in first line of sequence.calls.csh if server is changed in step 2 of install
+3. MechanismToCode/test> ./sequence.calls.csh chapman.json
+4. MechanismToCode/test> diff kinetics\_utilities.F90 expected/kinetics\_utilities.F90
+5. MechanismToCode/test> diff factor\_solve\_utilites.F90 expected/factor\_solve\_utilities.F90
 
 You may see minor differences with the last step, such as the tag number present for the github repository
 
