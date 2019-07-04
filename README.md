@@ -18,6 +18,6 @@ If you do so, you will need to edit the port number (and potentially the host na
 3. MechanismToCode/test> diff kinetics\_utilities.F90 expected/kinetics\_utilities.F90
 4. MechanismToCode/test> diff factor\_solve\_utilites.F90 expected/factor\_solve\_utilities.F90
 
-You may see minor differences with the last step, such as the tag number present for the github repository
+You may see minor differences with the last two diffs, such as the tag (version) of the git commit
 
 
