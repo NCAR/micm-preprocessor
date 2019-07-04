@@ -7,7 +7,7 @@ Web service converting JSON representation of chemical mechanism into code to be
 2. MechanismToCode> npm install
 3. MechanismToCode> node combined.js &
 
-You may wish to edit combined.js to specify a alternative to port 8080 in the http.listen() at end of combined.js
+You may wish to edit combined.js to specify an alternative to port 8080 in the http.listen() at end of combined.js
 
 If you do so, you will need to edit the port number (and potentially the host name) in test/sequence.calls.csh
 
