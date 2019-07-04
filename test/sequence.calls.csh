@@ -1,11 +1,10 @@
 #!/bin/bash
 echo $1
-#musica_preprocessor_web_address="http://localhost:8080"
-musica_preprocessor_web_address="https://cafe.acom.ucar.edu/preprocessor/"
-echo $musica_preprocessor_web_address
-curl -X POST -d @$1 $musica_preprocessor_web_address/constructJacobian --header "Content-Type:application/json" | python -m json.tool > $1.jac
-curl -X POST -d @$1.jac $musica_preprocessor_web_address/constructSparseLUFactor --header "Content-Type:application/json" | python -m json.tool > $1.LU
-curl -X POST -d @$1.LU $musica_preprocessor_web_address/toCode --header "Content-Type:application/json" | python -m json.tool > $1.jac.init
+MechanismToCode="http://localhost:8080"
+echo $MechanismToCode
+curl -X POST -d @$1 $MechanismToCode/constructJacobian --header "Content-Type:application/json" | python -m json.tool > $1.jac
+curl -X POST -d @$1.jac $MechanismToCode/constructSparseLUFactor --header "Content-Type:application/json" | python -m json.tool > $1.LU
+curl -X POST -d @$1.LU $MechanismToCode/toCode --header "Content-Type:application/json" | python -m json.tool > $1.jac.init
 python -c 'import sys, json; print json.load(sys.stdin)["backsolve_L_y_eq_b_fortran"]' < $1.LU > backsolve_L_y_eq_b.F90
 python -c 'import sys, json; print json.load(sys.stdin)["backsolve_U_x_eq_y_fortran"]' < $1.LU > backsolve_U_x_eq_y.F90
 python -c 'import sys, json; print json.load(sys.stdin)["factor_LU_fortran"]' < $1.LU > factor.F90

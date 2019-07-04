@@ -59,3 +59,21 @@ typings/
 
 # next.js build output
 .next
+
+# test results
+test/backsolve_L_y_eq_b.F90
+test/backsolve_U_x_eq_y.F90
+test/chapman.json.LU
+test/chapman.json.jac
+test/chapman.json.jac.init
+test/dforce_dy_times_vector.F90
+test/factor.F90
+test/factor_solve_utilities.F90
+test/factored_alpha_minus_jac.F90
+test/force.F90
+test/jacobian_init.F90
+test/kinetics_final.F90
+test/kinetics_init.F90
+test/kinetics_utilities.F90
+test/solve.F90
+

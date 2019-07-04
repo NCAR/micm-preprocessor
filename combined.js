@@ -16,12 +16,14 @@ const git_remote = require('child_process').execSync('git config --get remote.or
 const zero_equivalent_stoichometry_limit = 0.000001
 
 //   Compute checksum of a string
+/*
 function generateChecksum(str, algorithm, encoding) {
     return crypto
         .createHash(algorithm || 'md5')
         .update(str, 'utf8')
         .digest(encoding || 'hex');
 }
+*/
 
 // Collect all molecule names and assign an associative array
 // to index them
@@ -322,7 +324,7 @@ app.post('/constructJacobian', function(req, res) {
   // Only use the body of the request.
   // Ignore header data.
   var content = req.body;
-  var checksum = generateChecksum(JSON.stringify(content));
+  //var checksum = generateChecksum(JSON.stringify(content));
 
   var tag_info = content.mechanism.tag_info;
   tag_info.tagDescription = "This code is generated from tag "+tag_info.id+" of the mechanism, "+tag_info.branchname+ ".  It is named "+tag_info.given_name;
