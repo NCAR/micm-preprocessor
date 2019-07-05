@@ -1,0 +1,155 @@
+
+   Steps 1) - 7) are preparation for writing the LU factorization
+   code.
+
+   Starting with the logical, N x N sparsity matrix B
+
+   1)  copy B into C
+
+   2)  permute the rows and columns of C according to the permute vector
+
+       i)    copy C into working matrix D
+
+       Row permutation
+       --- -----------
+
+       ii)   for row = 1,N
+               if( permute(row) != row )
+                 D(row,1:N) = C(permute(row),1:N) 
+               end if
+             end for row
+
+       iii)  copy D into matrix C
+
+       Column permutation
+       ------ -----------
+
+       iv)   for col = 1,N
+               if( permute(col) != col )
+                 C(1:N,col) = D(1:N,permute(col)) 
+               end if
+             end for col
+
+   3)  copy matrix C into matrix B
+
+   4)  symbolic LU decomposition of C
+
+       i)    for row = 2,N
+               for col = row,N
+                 C(row:N,col) = C(row:N,col) || C(row:N,row-1)
+               end for col
+             end for row
+       (NOTE: the count of .true. elements in C is the size
+              of the LU decomposition vector)
+
+   5)  create an integer N x N matrix, denoted as M; initialize to zero
+
+       i)    M(1:N,1:N) = 0
+
+   6)  create an integer vector length N denoted as Diag
+
+   7)  form primary "mapping" matrix M and diagonal mapping vector Diag
+
+       i)    set k = 0
+
+       ii)   for col = 1,N
+               for row = 1,N
+                 if( C(row,col) == .true. )
+                   k = k + 1
+                   M(i,j) = k
+                   if( row == col )
+                     Diag(col) == k
+                   end if
+                 end if
+               end for row
+             end for col
+                   
+   Now we are ready to actually write code for the LU factorization
+   using matrix B from step 3) and the just formed mapping matrix M
+
+   For i = 1,N
+     1) form the diagonal inverse
+     if( i < N )
+       2) multiply the column below the diagonal by the diagonal inverse
+       3) modify the sub-matrix (i+1:N,i+1:N)
+     end if
+   End For i
+
+   Steps 1) ... 3) are inside the For i loop directly above.
+
+   In the following LU is a vector containing all the entries
+   in the LU decomposition of the numerical scheme Jacobian matrix.
+
+
+   Step 1)
+     a)  using M(i,i) as the index into the LU "vector"
+         write code that forms the multiplicative inverse
+         of diagonal element i of LU
+
+         As an example we want code that looks like
+
+         LU(diag_ndx) = 1./LU(diag_ndx)        <===========================<
+                                                                           ^
+         (where diag_ndx = M(i,i))                                         ^
+         (In the code diag_ndx will be replaced by an integer number)      ^
+         (This would produce code like:  LU(1) = 1./LU(1)                  ^
+          for diag_ndx == 1)                                               ^
+                                                                           ^
+   Step 2)                                                                 ^
+     a)  for row = i+1,N                                                   ^
+           if( B(row,i) == .true. )                                        ^
+             LU(indx) = LU(indx)*LU(diag_ndx)    >=========================^
+           end if
+         end for row
+
+         (where indx = M(row,i))
+
+         (This would produce code like:  LU(5) = LU(5)*LU(1)
+          for indx == 5 and diag_ndx == 1)
+
+   Step 3)
+     a)  for col = i+1,N
+           if( B(i,col) == .true. )
+             for row = i+1,N
+               if( B(row,i) == .true. )
+                 if( B(row,col) == .true. )
+                   LU(indx) = LU(indx) - LU(indx1)*LU(indx2)
+                 else
+***                B(row,col) = .true.
+                   LU(indx) = - LU(indx)*LU(diag_ndx)
+                 end if
+               end if
+             end for row
+           end if
+         end for col
+
+         where:
+
+         - indx  = M(row,col)
+         - indx1 = M(row,i)
+         - indx2 = M(i,col)
+
+         NOTE: the line beginning with "***" is not written out but
+               must be included in the source "code" that is writing
+               the output code
+
+         (For indx == 23, indx1 == 44, and indx2 == 15
+          this would produce code like: LU(23) = LU(23) - LU(44)*LU(15)
+          for B(row,col) == .true.
+          or                 code like: LU(23) = -LU(44)*LU(15)
+          for B(row,col) == .false.)
+
+   That is it for the LU factorization code.  I know it is a lot to digest and
+   I'm sure my explanation will need refining.  So fire away and I'll try to
+   clarify matters.
+
+   Finally, I found that if I put all the code into just one Fortran routine
+   then:
+
+   a)  it took forever to compile
+   b)  and the final executable code was inefficient even after taking all
+       day to compile
+
+   So I broke the single routine into routines with 50 - 100 Fortran lines
+   and then had a "entry" routine that sequentially called the individual
+   routines.  Messy but compiled much faster and was reasonably efficient.

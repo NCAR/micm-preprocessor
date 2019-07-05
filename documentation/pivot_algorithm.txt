@@ -1,0 +1,66 @@
+
+   In the following I'll try to outline the algorithmic steps taken
+   by the MOZART preprocessor to generate a permutation vector for
+   a near optimal reordering of the chemical solution species in a
+   given chemical scheme.
+
+   The following is for a system of N algebraic equations.  Each
+   equation is in general dependent on N chemical species.
+
+   1)  Form the boolean "interaction", N x N matrix, B, wherein
+
+       B(i,j) = .true.  If either/both the production,loss
+                        of equation i involves species j
+
+              = .false. Otherwise
+
+       Note: B(i,i) 1 <= i <= N is .true. since the actual
+             jacobian matrix is for a numerical method as in
+
+             Y(n+1)/h(n) = Y(n)/h(n) + f[t(n+1),Y(n+1)]
+
+             where Y,f are N x 1 vectors and h(n) == time step
+
+             The jacobian of this system is I/h(n) - Q[t(n+1),Y(n+1)]
+
+             where I == the identity matrix, Q == "chemical jacobian"
+
+             Thus from the term I/h(n) the diagonal elements of B
+             are .true.
+
+   2)  Intialize permute vector with permute(i) = i for 1 <= i <= N
+
+   3)  For 1 <= row <= N-1   (row is the index of a row of B)
+      
+       a)  form the "interaction" count for the "sub-matrix" B#
+           column by column for row <= column <= N
+
+           B# = B(i,j) for row <= i <= N ; row <= j <= N
+
+           The interaction count is:
+           {(the number of .true. elements in B#(row,row:N) - 1} times
+           {(the number of .true. elements in B#(row:N,row) - 1}
+
+       b)  find the row, rowmax, from a) with the greatest interaction count
+           If  rowmax != row then:
+
+           i)  interchange rows row and rowmax AND columns row and rowmax
+          ii)  interchange permute(row) and permute(rowmax)
+
+       c)  do a "logical" reduction on the sub-matrix B#
+
+           i)  for each B#(i,j)  i = row ; row+1 <= j <= N
+           
+              - if B#(i,j) == .true. then
+                   
+                B#(i,j) = {B#(i,j) .and. B#(k,j)} for row+1 <= i <= N ; row+1 <= k <= N
+
+   Once you have finished iterating step 3) you are done and the permute matrix
+   contains the mapping from the "unorder" input species to the order with near
+   optimal LU decomposition fill in.
+
+   Hope this is intelligible with only a little effort.  If not then by all means
+   ask for clarification.
+
+   Stacy
+
