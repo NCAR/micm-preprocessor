@@ -80,9 +80,9 @@ const j_rate_map_collection = function(){
     this.mapping.push({'tuv_id':photodecomp.tuv_id, 'index':index});
   }
   this.toCode = function(indexOffset){
-    let codeString  = "subroutine p_rate_mapping(tuv_rates, j_rateConst, errmsg, errflg)\n"
+    let codeString  = "subroutine p_rate_mapping(tuv_rates, j_rate_const)\n"
     codeString += "    real(KIND=r8),           intent(in)  :: tuv_rates(:) ! /sec \n"
-    codeString += "    real(KIND=r8),           intent(out) :: j_rateConst(:) ! /sec \n"
+    codeString += "    real(KIND=r8),           intent(out) :: j_rate_const(:) ! /sec \n"
     for(let i=0; i< this.mapping.length; i++){
       let j_index = indexOffset + this.mapping[i].index;
       let tuv_index = this.mapping[i].tuv_id;
