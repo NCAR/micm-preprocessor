@@ -16,7 +16,8 @@ If you do so, you will need to edit the port number (and potentially the host na
 1. MechanismToCode/test> ./sequence.calls.csh chapman.json
 2. MechanismToCode/test> diff kinetics\_utilities.F90 expected/kinetics\_utilities.F90
 3. MechanismToCode/test> diff factor\_solve\_utilities.F90 expected/factor\_solve\_utilities.F90
+4. MechanismToCode/test> diff rate\_constants\_utility.F90 expected/rate\_constants\_utility.F90
 
-You may see minor differences with the last two diffs, such as the tag (version) of the git commit
+You may see minor differences with the last three diffs, such as the tag (version) of the git commit
 
 
