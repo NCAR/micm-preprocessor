@@ -1,11 +1,32 @@
 'use strict'
 
-var app = require('express')();
-var http = require('http').Server(app);
-var bodyParser = require('body-parser');
+const app = require('express')();
+const http = require('http').Server(app);
+const bodyParser = require('body-parser');
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(bodyParser.json());
+
+const helmet = require('helmet')
+app.use(helmet())
+app.use(helmet.contentSecurityPolicy({
+  directives:{
+    "defaultSrc": ["'self'"],
+    "styleSrc": ["'self'"]
+  }
+}))
+app.use(helmet.expectCt({
+  enforce: true,
+  maxAge: 10
+}))
+app.use(helmet.frameguard({ action: 'deny' }))
+app.disable('x-powered-by')
+app.use(helmet.ieNoOpen())
+app.use(helmet.noCache())
+app.use(helmet.noSniff())
+app.use(helmet.permittedCrossDomainPolicies())
+app.use(helmet.xssFilter())
+
 
 // get git version hash of this git checkout
 const revision = require('child_process').execSync('git rev-parse HEAD').toString().trim()
