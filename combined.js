@@ -68,9 +68,15 @@ const k_collector = function() {
     this.mapping.push({'index':index, 'rate':reaction.rate });
   }
   this.toCode = function(indexOffset){
-    let codeString  = "subroutine k_rate_constant(k_rate_constants, TEMP)\n"
+    let codeString  = "subroutine k_rate_constant(k_rate_constants, number_density_air, TEMP)\n"
     codeString += "    real(KIND=r8),           intent(in)  :: TEMP ! temperature\n"
+    codeString += "    real(KIND=r8),           intent(in)  :: number_density_air ! P/kT molecules/cm3 \n"
     codeString += "    real(KIND=r8),           intent(out) :: k_rate_constants(:) ! rate constant for the each reaction\n"
+    codeString += "    real(KIND=r8):: t_inv, t_inv_300 ! 1/T, 300/T \n"
+    codeString += "    real(KIND=r8):: c_m ! number density \n"
+    codeString += "    c_m = number_density_air \n"
+    codeString += "    t_inv = 1 / TEMP \n"
+    codeString += "    t_inv_300 = 300 / TEMP \n"
     for(let i=0; i< this.mapping.length; i++){
       let k_index = indexOffset + this.mapping[i].index;
       codeString += "    k_rate_constants("+k_index+") = "+this.mapping[i].rate+" \n";
