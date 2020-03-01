@@ -1,27 +1,27 @@
 {
-  "name": "MechanismToCode",
+  "name": "mechanismtocode",
   "version": "1.0.0",
   "description": "Web service converting JSON representation of chemical mechanism into code to be used by a solver.",
-  "main": "index.js",
+  "main": "combined.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "helmet": "^3.21.2"
+  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NCAR/MechanismToCode.git"
+    "url": "git+ssh://git@github.com/NCAR/MechanismToCode.git"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/NCAR/MechanismToCode/issues"
   },
-  "homepage": "https://github.com/NCAR/MechanismToCode#readme",
-  "dependencies": {
-    "body-parser": "^1.19.0",
-    "child_process": "^1.0.2",
-    "express": "^4.17.1",
-    "helmet": "^3.19.0",
-    "http": "0.0.0"
-  }
+  "homepage": "https://github.com/NCAR/MechanismToCode#readme"
 }

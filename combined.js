@@ -65,21 +65,64 @@ const moleculeIndexer = function(molecules){
 const k_collector = function() {
   this.mapping = [];
   this.add = function(reaction, index){
-    this.mapping.push({'index':index, 'rate':reaction.rate });
+    this.mapping.push({'index':index, 'rate_call':reaction.rate_call, 'reaction_class':reaction.rate_constant.reaction_class, 'parameters':reaction.rate_constant.parameters ,'label':reaction.label, 'reaction_string':reaction.reactionString});
   }
   this.toCode = function(indexOffset){
-    let codeString  = "subroutine k_rate_constant(k_rate_constants, number_density_air, TEMP)\n"
-    codeString += "    real(KIND=r8),           intent(in)  :: TEMP ! temperature\n"
+    let codeString  = "subroutine k_rate_constant(k_rate_constants, number_density_air, temperature, pressure, sad, aerosol_diameter, h2ovmr, o2vmr)\n"
+    codeString += "    real(KIND=r8),           intent(in)  :: temperature\n"
+    codeString += "    real(KIND=r8),           intent(in)  :: pressure\n"
+    codeString += "    real(KIND=r8),           intent(in)  :: sad(4)  ! aerosol surface area density \n"
+    codeString += "    real(KIND=r8),           intent(in)  :: aerosol_diameter(4) ! aerosol diameter \n"
     codeString += "    real(KIND=r8),           intent(in)  :: number_density_air ! P/kT molecules/cm3 \n"
+    codeString += "    real(KIND=r8),           intent(in)  :: h2ovmr, o2vmr \n"
     codeString += "    real(KIND=r8),           intent(out) :: k_rate_constants(:) ! rate constant for the each reaction\n"
-    codeString += "    real(KIND=r8):: t_inv, t_inv_300 ! 1/T, 300/T \n"
-    codeString += "    real(KIND=r8):: c_m ! number density \n"
-    codeString += "    c_m = number_density_air \n"
-    codeString += "    t_inv = 1 / TEMP \n"
-    codeString += "    t_inv_300 = 300 / TEMP \n"
+
+    codeString += "\n"
+    codeString += "    type( arrhenius_rate_param_type ) :: arrhenius_parameters \n"
+    codeString += "    type( troe_rate_param_type ) :: troe_parameters \n"
+    codeString += "    type( troe_low_pressure_rate_param_type ) :: troe_low_pressure_parameters \n"
+    codeString += "    type( Troe_Reverse_rate_param_type ) :: Troe_Reverse_parameters \n"
+    codeString += "    type( troe_chemical_activation_rate_param_type ) :: troe_chemical_activation_parameters \n"
+    codeString += "    type( Simple_aerosol_heterogeneous_rate_rate_param_type ) :: Simple_aerosol_heterogeneous_rate_parameters \n"
+    codeString += "    type( HET_glyoxyl_rate_param_type ) :: HET_glyoxyl_parameters \n"
+    codeString += "    type( combined_CO_OH_rate_param_type ) :: combined_CO_OH_parameters \n"
+    codeString += "    type( CH3COCH3_OH_rate_param_type ) :: CH3COCH3_OH_parameters \n"
+    codeString += "    type( HO2_HO2_rate_param_type ) :: HO2_HO2_parameters \n"
+    codeString += "    type( DMS_OH_rate_param_type ) :: DMS_OH_parameters \n"
+    codeString += "    type( HNO3_OH_rate_param_type ) :: HNO3_OH_parameters \n"
+    codeString += "    type( MCO3_NO2_rate_param_type ) :: MCO3_NO2_parameters \n"
+    codeString += "    type( MPAN_M_rate_param_type ) :: MPAN_M_parameters \n"
+    codeString += "    type( SO2_OH_rate_param_type ) :: SO2_OH_parameters \n"
+
+    codeString += "\n"
+    codeString += "    type(environmental_state_type) :: environmental_state \n\n"
+
+    codeString += "\n"
+    codeString += "    environmental_state%temperature = temperature \n"
+    codeString += "    environmental_state%pressure = pressure \n"
+    codeString += "    environmental_state%number_density_air = number_density_air \n"
+    codeString += "    environmental_state%aerosol_surface_area_density(:) = sad(:) \n"
+    codeString += "    environmental_state%aerosol_diameter(:) = aerosol_diameter(:) \n\n"
+    codeString += "    environmental_state%h2ovmr = h2ovmr \n\n"
+    codeString += "    environmental_state%o2_number_density = o2vmr*number_density_air \n\n"
+
     for(let i=0; i< this.mapping.length; i++){
+
+      //console.log(this.mapping[i]);
+
       let k_index = indexOffset + this.mapping[i].index;
-      codeString += "    k_rate_constants("+k_index+") = "+this.mapping[i].rate+" \n";
+      let rate_constant_string = "";
+
+      
+      rate_constant_string += "    !"+ this.mapping[i].label +"\n";
+      rate_constant_string += "    !"+ this.mapping[i].reaction_string +"\n";
+      for (const [key, value] of Object.entries(this.mapping[i].parameters)) {
+        rate_constant_string += "    "+this.mapping[i].reaction_class+"_parameters%"+key+" = "+value+"\n";
+      }
+
+      rate_constant_string += "    k_rate_constants("+k_index+") = "+this.mapping[i].rate_call+" \n\n";
+      codeString += rate_constant_string;
+
     }
     codeString  += "end subroutine k_rate_constant \n\n";
     return codeString;
@@ -113,7 +156,8 @@ const j_rate_map_collection = function(){
     for(let i=0; i< this.mapping.length; i++){
       let j_index = indexOffset + this.mapping[i].index;
       let tuv_index = this.mapping[i].tuv_id;
-      codeString += "    j_rate_const("+j_index+") = tuv_rates("+tuv_index+") \n"
+      //codeString += "    j_rate_const("+j_index+") = tuv_rates("+tuv_index+") \n"
+      codeString += "    j_rate_const("+j_index+") = tuv_rates("+(i+1)+") \n"
     }
     codeString  += "end subroutine p_rate_mapping \n\n";
     return codeString;
@@ -481,6 +525,8 @@ function constructJacobian(req, res, next) {
 
   let rate_constant_module = "module rate_constants_utility \n\n";
   rate_constant_module += "use ccpp_kinds, only: r8 => kind_phys \n\n"
+  rate_constant_module += "use rate_constant_functions \n\n"
+  rate_constant_module += "use environmental_state_mod \n\n"
   rate_constant_module += "! This code was generated by Preprocessor revision "+revision+"\n"
   rate_constant_module += "! Preprocessor source "+git_remote+"\n\n"
   rate_constant_module += "! "+tag_info.tagDescription+"\n";
@@ -490,8 +536,10 @@ function constructJacobian(req, res, next) {
   rate_constant_module += "  contains\n\n";
   rate_constant_module += j_map.toCode(1);
   rate_constant_module += k_collection.toCode(1);
-  rate_constant_module += special_k_collection.toCode();
+  //rate_constant_module += special_k_collection.toCode();
   rate_constant_module += "\nend module rate_constants_utility\n";
+
+
 
   res.locals.preprocessorVersion = revision;
   res.locals.tagDescription = tag_info.tagDescription;
@@ -1250,9 +1298,9 @@ function toCode(req, res, next) {
 
 }
 
-
 var sequence =[constructJacobian, constructSparseLUFactor, toCode];
 app.post('/constructJacobian', sequence, function(req, res, next) {
+  console.log(res.locals);
   res.json({
     "kinetics_utilities_module":res.locals.kinetics_utilities_module,
     "rate_constants_utility_module":res.locals.rate_constants_utility_module,
