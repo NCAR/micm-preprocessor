@@ -64,7 +64,9 @@ const moleculeIndexer = function(molecules){
 
 const k_collector = function() {
   this.mapping = [];
+  this.kLabel = [];
   this.add = function(reaction, index){
+    this.kLabel.push({"simulationIndex":index,"kRateDescription":reaction.reactionString});
     this.mapping.push({'index':index, 'rate_call':reaction.rate_call, 'reaction_class':reaction.rate_constant.reaction_class, 'parameters':reaction.rate_constant.parameters ,'label':reaction.label, 'reaction_string':reaction.reactionString});
   }
   this.toCode = function(indexOffset){
@@ -121,6 +123,7 @@ const k_collector = function() {
       }
 
       rate_constant_string += "    k_rate_constants("+k_index+") = "+this.mapping[i].rate_call+" \n\n";
+      this.kLabel[i].simulationIndex = k_index;
       codeString += rate_constant_string;
 
     }
@@ -146,8 +149,10 @@ const special_k_collector = function() {  // no relation to the cereal
 
 const j_rate_map_collection = function(){
   this.mapping = [];
+  this.jLabel = []; // extract photolysis label and description at the same time
   this.add = function(photodecomp, index){
     this.mapping.push({'tuv_id':photodecomp.tuv_id, 'index':index});
+    this.jLabel.push({"simulationIndex":index,"photodecompositionDescription":photodecomp.reactionString});
   }
   this.toCode = function(indexOffset){
     let codeString  = "subroutine p_rate_mapping(tuv_rates, j_rate_const)\n"
@@ -157,9 +162,12 @@ const j_rate_map_collection = function(){
       let j_index = indexOffset + this.mapping[i].index;
       let tuv_index = this.mapping[i].tuv_id;
       //codeString += "    j_rate_const("+j_index+") = tuv_rates("+tuv_index+") \n"
-      codeString += "    j_rate_const("+j_index+") = tuv_rates("+(i+1)+") \n"
+      codeString += "    ! "+this.jLabel[i].photodecompositionDescription +"\n"
+      codeString += "    j_rate_const("+j_index+") = tuv_rates("+(i+1)+") \n\n"
     }
     codeString  += "end subroutine p_rate_mapping \n\n";
+    console.log("photodecompLabels \n");
+    console.log(this.jLabel);
     return codeString;
   }
 }
@@ -551,6 +559,8 @@ function constructJacobian(req, res, next) {
   res.locals.logicalJacobian = logicalJacobian; 
   res.locals.jacobian = jacobian;
   res.locals.moleculeIndex = mIndex;
+  res.locals.j_labels = j_map.jLabel;
+  res.locals.k_labels = k_collection.kLabel;
   res.locals.rate_constants_utility_module = rate_constant_module;
   res.locals.force = force;
 
@@ -1305,6 +1315,8 @@ app.post('/constructJacobian', sequence, function(req, res, next) {
     "kinetics_utilities_module":res.locals.kinetics_utilities_module,
     "rate_constants_utility_module":res.locals.rate_constants_utility_module,
     "factor_solve_utilities_module":res.locals.factor_solve_utilities_module,
+    "j_labels":res.locals.j_labels,
+    "k_labels":res.locals.k_labels
   });
 });
 
