@@ -1,7 +1,67 @@
 {
-  "$schema": "http://json-schema.org/schema#",
-  "$id" : "https://github.com/NCAR/MechanismToCode/schemas/chemical_species",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+
+  "definitions" : {
+
+      "molecular weight" : {
+        "$id" : "#molec_weight",
+        "properties" : {
+          "value" : { "type" : "number", "minimum" : 1.0e-3, "maximum" : 1.0 },
+          "units" : { "type" : "string",
+                      "enum" : [ "kg/mol", "kg per mole", "kg mol-1" ] }
+        },
+        "required" : [ "value", "units" ],
+        "additionalProperties" : false
+      },
+
+      "Henry's law constant" : {
+        "$id" : "#hlc",
+        "properties" : {
+
+          "at 298 K" : {
+            "properties" : {
+              "value" : { "type" : "number", "minimum" : 0.0 },
+              "units" : { "type" : "string",
+                          "enum" : [ "M/Pa", "M per Pa", "M Pa-1" ] }
+            },
+            "required" : [ "value", "units" ],
+            "additionalProperties" : false
+          },
+
+          "exponential factor" : {
+            "properties" : {
+              "value" : { "type" : "number" },
+              "units" : { "type" : "string", "enum" : [ "K" ] }
+            },
+            "required" : [ "value", "units" ],
+            "additionalProperties" : false
+          }
+        },
+        "required" : [ "at 298 K", "exponential factor" ],
+        "additionalProperties" : false
+      },
+
+      "diffusion coefficient" : {
+        "$id" : "#diff_coeff",
+        "properties" : {
+          "value" : { "type" : "number", "minimum" : 0.0 },
+          "units" : { "type" : "string",
+                      "enum" : [ "m2/s", "m2 per s", "m2 s-1" ] }
+        },
+        "required" : [ "value", "units" ],
+        "additionalProperties" : false
+      }
+  },
+
+  "$id" : "#chemical_species",
   "type" : "object",
-  "chemical formula" : "string",
-  "long name" : "string"
+  "properties" : {
+    "external properties" : { "type" : "array" },
+    "chemical formula" : { "type" : "string" },
+    "long name" : { "type" : "string" },
+    "molecular weight" : { "$ref" : "#molec_weight" },
+    "Henry's law constant" : { "$ref" : "#hlc" },
+    "diffusion coefficient" : { "$ref" : "#diff_coeff" }
+  },
+  "additionalProperties" : false
 }
