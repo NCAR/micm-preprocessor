@@ -7,7 +7,8 @@
       "at 298 K" : { "value" : 1.12509e-7, "units" : "M Pa-1" },
       "exponential factor" : { "value" : 2300.0, "units" : "K" }
     },
-    "diffusion coefficient" : { "value" : 1.48e-5, "units" : "m2 s-1" }
+    "diffusion coefficient" : { "value" : 1.48e-5, "units" : "m2 s-1" },
+    "not a standard property" : { "value" : 12.0, "units" : "J per L" }
   },
   "my additional property" : "hi there"
 }

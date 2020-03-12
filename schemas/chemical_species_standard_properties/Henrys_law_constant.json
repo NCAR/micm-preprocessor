@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species_standard_properties/henrys_law_constant.json",
+  "type" : "object",
+  "properties" : {
+
+    "at 298 K" : {
+      "properties" : {
+        "value" : { "type" : "number", "minimum" : 0.0 },
+        "units" : { "type" : "string",
+                    "enum" : [ "M/Pa", "M per Pa", "M Pa-1" ] }
+      },
+      "required" : [ "value", "units" ],
+      "additionalProperties" : false
+    },
+
+    "exponential factor" : {
+      "properties" : {
+        "value" : { "type" : "number" },
+        "units" : { "type" : "string", "enum" : [ "K" ] }
+      },
+      "required" : [ "value", "units" ],
+      "additionalProperties" : false
+    }
+  },
+  "required" : [ "at 298 K", "exponential factor" ],
+  "additionalProperties" : false
+}
