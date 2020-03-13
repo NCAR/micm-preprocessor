@@ -25,7 +25,7 @@ var ajv = new Ajv({ loadSchema: loadSchema });
 ajv.compileAsync( schema ).then( function( validate ) {
   let valid = validate( test_data );
   if( !valid ) {
-    console.log( ajv.errorsText( ) );
+    console.log( ajv.errorsText( validate.errors ) );
     console.log( 'FAIL' );
   } else {
     console.log( 'PASS' );

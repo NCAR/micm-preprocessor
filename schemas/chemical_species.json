@@ -8,7 +8,8 @@
         "chemical formula" : { "type" : "string" },
         "molecular weight" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species_standard_properties/molecular_weight.json" },
         "Henry's law constant" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species_standard_properties/henrys_law_constant.json" },
-        "diffusion coefficient" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species_standard_properties/diffusion_coefficient.json"}
+        "diffusion coefficient" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species_standard_properties/diffusion_coefficient.json"},
+        "density" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species_standard_properties/density.json"}
       },
       "additionalProperties" : false
     }
@@ -18,9 +19,10 @@
   "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species.json",
   "type" : "object",
   "properties" : {
+    "TYPE" : { "type" : "string", "enum" : [ "CHEMICAL_SPECIES" ] },
     "long name" : { "type" : "string" },
     "standard properties" : { "$ref" : "#/definitions/standard_properties" }
   },
-  "required" : [ "long name" ],
+  "required" : [ "TYPE", "long name" ],
   "additionalProperties" : true
 }
