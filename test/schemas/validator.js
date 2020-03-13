@@ -1,37 +1,39 @@
 'use strict';
 
-if( process.argv.length != 3 ) {
-  console.log('Useage: node validator.js my_data.json');
+if( process.argv.length != 4 ) {
+  console.log('Useage: node validator.js my_schema.json my_data.json');
   exit;
 }
 
 const Ajv = require('ajv');
 const fs = require('fs');
 
-let raw_json = fs.readFileSync( '../../schemas/chemical_species.json' );
-let chemical_species_schema = JSON.parse( raw_json );
+const schema_dir_name = '/schemas/';
 
-raw_json = fs.readFileSync( '../../schemas/chemical_species_standard_properties/molecular_weight.json' );
-let molecular_weight_schema = JSON.parse( raw_json );
+// Read the schema and determine the root schema directory
+const schema_root_path = process.argv[2].split( schema_dir_name )[0].concat( schema_dir_name );
+let raw_json = fs.readFileSync( process.argv[2] );
+let schema = JSON.parse( raw_json );
+const schema_root_uri = schema.$id.split( schema_dir_name )[0].concat( schema_dir_name );
 
-raw_json = fs.readFileSync( '../../schemas/chemical_species_standard_properties/henrys_law_constant.json' );
-let henrys_law_constant_schema = JSON.parse( raw_json );
-
-raw_json = fs.readFileSync( '../../schemas/chemical_species_standard_properties/diffusion_coefficient.json' );
-let diffusion_coefficient_schema = JSON.parse( raw_json );
-
-raw_json = fs.readFileSync( process.argv[2] );
+// Read the JSON data to validate
+raw_json = fs.readFileSync( process.argv[3] );
 let test_data = JSON.parse( raw_json );
 
-let ajv = new Ajv({ verbose : true });
-let validate = ajv.addSchema( molecular_weight_schema      )
-                  .addSchema( henrys_law_constant_schema   )
-                  .addSchema( diffusion_coefficient_schema )
-                  .compile(   chemical_species_schema      );
-let valid = validate( test_data );
-if( !valid ) {
-  console.log( ajv.errorsText( ) );
-  console.log( 'FAIL' );
-} else {
-  console.log( 'PASS' );
+// Validate the schema
+var ajv = new Ajv({ loadSchema: loadSchema });
+ajv.compileAsync( schema ).then( function( validate ) {
+  let valid = validate( test_data );
+  if( !valid ) {
+    console.log( ajv.errorsText( ) );
+    console.log( 'FAIL' );
+  } else {
+    console.log( 'PASS' );
+  }
+}).catch( function( err ) { console.log( err.name + ": " + err.message ); });
+
+// Load sub-schemas
+function loadSchema(uri) {
+  let path = schema_root_path.concat( uri.split( schema_root_uri )[1] );
+  return Promise.resolve( JSON.parse( fs.readFileSync( path ) ) );
 }
