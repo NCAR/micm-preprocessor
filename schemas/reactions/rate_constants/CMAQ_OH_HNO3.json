@@ -1,0 +1,33 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rate_constants/CMAQ_OH_HNO3.json",
+  "type" : "object",
+  "description" : "Parameters needed to calculate rate constants of the form k = k0 + k3[M] / (1 + k3[M]/k2) where k1, k2, and k3 are Arrhenius rate constants of the form k = A * exp( C/T ) * ( T/300 )^B where T is temperature (K)",
+  "example" : {
+    "TYPE" : "RATE_CONST_CMAQ_OH_HNO3",
+    "k0_A" : 13.3,
+    "k0_B" : 1.2,
+    "k0_C" : -0.43,
+    "k2_A" : 13.3,
+    "k2_B" : 1.2,
+    "k2_C" : -0.43,
+    "k3_A" : 13.3,
+    "k3_B" : 1.2,
+    "k3_C" : -0.43
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "RATE_CONST_CMAQ_OH_HNO3" },
+    "k0_A" : { "type" : "number", "minimum" : 0.0, "description" : "Pre-exponential factor (units : (#/#)^(num_react-1)/s" },
+    "k0_B" : { "type" : "number", "default" : 0.0 },
+    "k0_C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (units: K)" },
+    "k2_A" : { "type" : "number", "minimum" : 0.0, "description" : "Pre-exponential factor (units : (#/#)^(num_react-1)/s" },
+    "k2_B" : { "type" : "number", "default" : 0.0 },
+    "k2_C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (units: K)" },
+    "k3_A" : { "type" : "number", "minimum" : 0.0, "description" : "Pre-exponential factor (units : (#/#)^(num_react-1)/s" },
+    "k3_B" : { "type" : "number", "default" : 0.0 },
+    "k3_C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (units: K)" }
+  },
+  "additionalProperties" : true,
+  "required" : [ "TYPE", "k0_A", "k2_A", "k3_A" ]
+}

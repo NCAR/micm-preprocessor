@@ -1,0 +1,31 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rate_constants/troe.json",
+  "type" : "object",
+  "description" : "Parameters needed to calculate an Troe rate constant. For the equation for Troe (falloff) reactions, see Chemistry of the Upper and Lower Atmosphere, Finlayson-Pitts and Pitts (2000). Troe reactions are parameterized by two Arrhenius rate constants: high-pressure (kinf) and low-pressure (k0) and two constants, Fc and N. The Arrhenius rate constants are calculated as k = A * exp( C/T ) * ( T/300 )^B where T is temperature (K)",
+  "example" : {
+    "TYPE" : "RATE_CONST_TROE",
+    "k0_A" : 13.3,
+    "k0_B" : 1.2,
+    "k0_C" : -0.43,
+    "kinf_A" : 13.3,
+    "kinf_B" : 1.2,
+    "kinf_C" : -0.43,
+    "Fc" : 0.7,
+    "N" : 0.9
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "RATE_CONST_ARRHENIUS" },
+    "k0_A" : { "type" : "number", "minimum" : 0.0, "description" : "Low-pressure pre-exponential factor (units : (#/#)^(num_react-1)/s" },
+    "k0_B" : { "type" : "number", "default" : 0.0, "description" : "Low-pressure parameter" },
+    "k0_C" : { "type" : "number", "default" : 0.0, "description" : "Low-pressure exponential term (units: K)" },
+    "kinf_A" : { "type" : "number", "minimum" : 0.0, "description" : "High-pressure pre-exponential factor (units : (#/#)^(num_react-1)/s" },
+    "kinf_B" : { "type" : "number", "default" : 0.0, "description" : "High-pressure parameter" },
+    "kinf_C" : { "type" : "number", "default" : 0.0, "description" : "High-pressure exponential term (units: K)" },
+    "Fc" : { "type" : "number", "default" : 0.6, "description" : "Fall-off curve shape parameter" },
+    "N" : { "type" : "number", "default" : 1.0, "description" : "Fall-off curve shape parameter" }
+  },
+  "additionalProperties" : true,
+  "required" : [ "TYPE", "k0_A", "k_inf_A" ]
+}

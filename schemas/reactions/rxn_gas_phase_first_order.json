@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rxn_gas_phase_first_order.json",
+  "type" : "object",
+  "description" : "A reaction with a single reactant (photolysis, deposition, etc.)",
+  "example" : {
+    "TYPE" : "RXN_GAS_PHASE_FIRST_ORDER",
+    "reactant" : { "species" : "H2O2" },
+    "products" : [
+      { "species" : "OH", "yield" : 2.000 }
+    ],
+    "rate constant" : {
+      "TYPE" : "RATE_CONST_CONSTANT",
+      "Fast-J id" : "H2O2"
+    },
+    "my custom flag" : "This is set by the Fast-J photolysis module"
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "RXN_GAS_PHASE_FIRST_ORDER" },
+    "reactant" : {
+      "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/reactant_single.json"
+    },
+    "products" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/product.json"
+      }
+    },
+    "rate constant" : {
+      "oneOf" : [
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rateConstants/constant.json" }
+      ]
+    }
+  },
+  "additionalProperties" : true,
+  "required" : [ "TYPE", "reactant", "products", "rate constant" ]
+}
