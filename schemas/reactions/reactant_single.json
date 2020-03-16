@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/reactant_single.json",
+  "type" : "object",
+  "description" : "Reactant in reactions with only one reactant, such as photolysis, first-order loss, etc.",
+  "example" : {
+    "species" : "O3"
+  },
+  "properties" : {
+    "species" : {
+      "type" : "string",
+      "description" : "Species name. This species must be present in the set of chemical species this reaction is applied to. Specific reactions may require certain species properties to also be present."
+    }
+  },
+  "additionalProperties" : false,
+  "required" : [ "species" ]
+}

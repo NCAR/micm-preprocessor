@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rxn_gas_phase.json",
+  "type" : "object",
+  "description" : "A reaction with one or more reactants",
+  "example" : {
+    "TYPE" : "RXN_GAS_PHASE",
+    "reactants" : [
+      { "species" : "NO2", "number" : 2 },
+      { "species" : "O2" }
+    ],
+    "products" : [
+      { "species" : "NO2", "yield" : 2.000 }
+    ],
+    "rate constant" : {
+      "TYPE" : "RATE_CONST_ARRHENIUS",
+      "A" : 3.3E-39,
+      "B" : 0.0E+00,
+      "C" : 530.0
+    },
+    "my custom flag" : "This is my favorite reaction"
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "enum" : [ "RXN_GAS_PHASE" ] },
+    "reactants" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/reactant_multiple.json"
+      }
+    },
+    "products" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/product.json"
+      }
+    },
+    "rate constant" : {
+      "oneOf" : [
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rateConstants/arrhenius.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rateConstants/troe.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rateConstants/first_order_loss.json" }
+      ]
+    }
+  },
+  "additionalProperties" : true,
+  "required" : [ "TYPE", "reactants", "products", "rate constant" ]
+}
