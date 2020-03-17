@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/schema#",
 
-  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species_standard_properties/diffusion_coefficient.json",
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/diffusion_coefficient.json",
   "type" : "object",
   "properties" : {
     "value" : { "type" : "number", "minimum" : 0.0 },

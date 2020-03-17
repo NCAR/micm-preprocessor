@@ -1,7 +1,7 @@
 {
   "$schema" : "http://json-schema.org/schema#",
 
-  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rate_constants/arrhenius.json",
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/arrhenius.json",
   "type" : "object",
   "description" : "Parameters needed to calculate an Arrhenius-like rate constant of the form A * exp( -E_a / (k_B * T) ) * ( T / D )^B * (1 + E * P) where T is temperature (K), P is pressure (Pa), E_a is the activation energy (J) for the reaction, k_B is the Boltzmann constant (J/K), and A, B, D, and E are reaction parameters. A parameter C == -E_a / k_B may be specified instead of E_a",
   "example" : {

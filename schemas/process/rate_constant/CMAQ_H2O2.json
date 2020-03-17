@@ -1,7 +1,7 @@
 {
   "$schema" : "http://json-schema.org/schema#",
 
-  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rate_constants/CMAQ_H2O2.json",
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/CMAQ_H2O2.json",
   "type" : "object",
   "description" : "Parameters needed to calculate rate constants of the form k = k1 + k2[M], where k1 and k2 are Arrhenius rate constants of the form k = A * exp( C/T ) * ( T/300 )^B, where T is temperature (K).",
   "example" : {

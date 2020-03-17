@@ -1,0 +1,19 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/constant.json",
+  "type" : "object",
+  "description" : "A rate constant that is actually constant. This can be used for rate constants that do not vary during a simulations or are calculated by a separate module (e.g., a photolysis module). In the latter case, flags can be included in this object that allow it to be easily identified during model initialization (see the example).",
+  "example" : {
+    "TYPE" : "RATE_CONST_CONSTANT",
+    "scaling" : 0.9,
+    "Fast-J id" : "H2O2"
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "RATE_CONST_CONSTANT" },
+    "scaling" : { "type" : "number", "default" : 1.0, "description" : "Scaling factor to apply to externally provided rate constants" },
+    "initial value" : { "type" : "number", "default" : 0.0, "description" : "Rate constant to use until a new constant is provided by an external source" }
+  },
+  "additionalProperties" : true,
+  "required" : [ "TYPE" ]
+}

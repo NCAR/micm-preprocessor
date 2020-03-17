@@ -1,9 +1,9 @@
 {
   "$schema" : "http://json-schema.org/schema#",
 
-  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rate_constants/troe.json",
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/troe.json",
   "type" : "object",
-  "description" : "Parameters needed to calculate an Troe rate constant. For the equation for Troe (falloff) reactions, see Chemistry of the Upper and Lower Atmosphere, Finlayson-Pitts and Pitts (2000). Troe reactions are parameterized by two Arrhenius rate constants: high-pressure (kinf) and low-pressure (k0) and two constants, Fc and N. The Arrhenius rate constants are calculated as k = A * exp( C/T ) * ( T/300 )^B where T is temperature (K)",
+  "description" : "Parameters needed to calculate an Troe rate constant. For the equation for Troe (falloff) processes, see Chemistry of the Upper and Lower Atmosphere, Finlayson-Pitts and Pitts (2000). Troe processes are parameterized by two Arrhenius rate constants: high-pressure (kinf) and low-pressure (k0) and two constants, Fc and N. The Arrhenius rate constants are calculated as k = A * exp( C/T ) * ( T/300 )^B where T is temperature (K)",
   "example" : {
     "TYPE" : "RATE_CONST_TROE",
     "k0_A" : 13.3,

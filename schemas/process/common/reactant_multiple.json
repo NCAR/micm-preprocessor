@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_multiple.json",
+  "type" : "object",
+  "description" : "A reactant that can be present multiple times in a process. For example, NO + NO + O2 -> NO2 + NO2",
+  "example" : {
+    "type" : "NO",
+    "number" : 2
+  },
+  "properties" : {
+    "species" : {
+      "type" : "string",
+      "description" : "Species name. This species must be present in the set of chemical species this process is applied to. Specific processes may require certain species properties to also be present."
+    },
+    "number" : {
+      "type" : "integer",
+      "description" : "The number of a particular species participating in a reaction. For self processes this number would be 2.",
+      "default" : 1
+    }
+  },
+  "additionalProperties" : false,
+  "required" : [ "species" ]
+}

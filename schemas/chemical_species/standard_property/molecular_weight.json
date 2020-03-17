@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/schema#",
 
-  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species_standard_properties/molecular_weight.json",
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/molecular_weight.json",
   "type" : "object",
   "properties" : {
     "value" : { "type" : "number", "minimum" : 1.0e-3, "maximum" : 1.0 },

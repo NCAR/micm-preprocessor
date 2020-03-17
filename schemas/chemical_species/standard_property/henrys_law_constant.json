@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/schema#",
 
-  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species_standard_properties/henrys_law_constant.json",
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/henrys_law_constant.json",
   "type" : "object",
   "properties" : {
 

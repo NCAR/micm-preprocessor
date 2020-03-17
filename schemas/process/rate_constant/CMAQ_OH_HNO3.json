@@ -1,7 +1,7 @@
 {
   "$schema" : "http://json-schema.org/schema#",
 
-  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rate_constants/CMAQ_OH_HNO3.json",
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/CMAQ_OH_HNO3.json",
   "type" : "object",
   "description" : "Parameters needed to calculate rate constants of the form k = k0 + k3[M] / (1 + k3[M]/k2) where k1, k2, and k3 are Arrhenius rate constants of the form k = A * exp( C/T ) * ( T/300 )^B where T is temperature (K)",
   "example" : {

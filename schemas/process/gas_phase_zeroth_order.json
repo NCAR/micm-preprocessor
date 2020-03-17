@@ -1,11 +1,11 @@
 {
   "$schema": "http://json-schema.org/schema#",
 
-  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rxn_gas_phase_zeroth_order.json",
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/gas_phase_zeroth_order.json",
   "type" : "object",
   "description" : "A process with no reactants (e.g., emissions).",
   "example" : {
-    "TYPE" : "RXN_GAS_PHASE_ZEROTH_ORDER",
+    "TYPE" : "PROCESS_GAS_PHASE_ZEROTH_ORDER",
     "products" : [
       { "species" : "NO2" }
     ],
@@ -17,16 +17,16 @@
     "my custom flag" : "The rate for this process is set by the HERMES emissions model."
   },
   "properties" : {
-    "TYPE" : { "type" : "string", "enum" : [ "RXN_GAS_PHASE_ZEROTH_ORDER" ] },
+    "TYPE" : { "type" : "string", "enum" : [ "PROCESS_GAS_PHASE_ZEROTH_ORDER" ] },
     "products" : {
       "type" : "array",
       "items" : {
-        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/product.json"
+        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json"
       }
     },
     "rate constant" : {
       "oneOf" : [
-        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/reactions/rateConstants/constant.json" }
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/constant.json" }
       ]
     }
   },

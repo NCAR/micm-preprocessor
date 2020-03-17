@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/gas_phase_ith_order.json",
+  "type" : "object",
+  "description" : "A process with one or more reactants",
+  "example" : {
+    "TYPE" : "PROCESS_GAS_PHASE_ITH_ORDER",
+    "reactants" : [
+      { "species" : "NO2", "number" : 2 },
+      { "species" : "O2" }
+    ],
+    "products" : [
+      { "species" : "NO2", "yield" : 2.000 }
+    ],
+    "rate constant" : {
+      "TYPE" : "RATE_CONST_ARRHENIUS",
+      "A" : 3.3E-39,
+      "B" : 0.0E+00,
+      "C" : 530.0
+    },
+    "my custom flag" : "This is my favorite reaction"
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "PROCESS_GAS_PHASE_ITH_ORDER" },
+    "reactants" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_multiple.json"
+      }
+    },
+    "products" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json"
+      }
+    },
+    "rate constant" : {
+      "oneOf" : [
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/arrhenius.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/troe.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/CMAQ_H2O2.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/CMAQ_OH_HNO3.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/constant.json" }
+      ]
+    }
+  },
+  "additionalProperties" : true,
+  "required" : [ "TYPE", "reactants", "products", "rate constant" ]
+}
