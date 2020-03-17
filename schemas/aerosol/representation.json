@@ -1,0 +1,56 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/aerosol/representation.json",
+  "type" : "object",
+  "description" : "A collection of aerosol components and a gas-phase that form a comprehensive aerosol representation",
+  "example" : {
+    "TYPE" : "AEROSOL_REPRESENTATION",
+    "NAME" : "my first aerosol rep",
+    "components" : [
+      {
+        "TYPE" : "AEROSOL_SECTION_SET",
+        "NAME" : "mixed mode",
+        "number of sections" : 8,
+        "minimum diameter" : { "value" : 1.0e-9, "units" : "m" },
+        "maximum diameter" : { "value" : 1.0e-6, "units" : "m" },
+        "distribution shape" : "LOG",
+        "phases" : [ "aqueous aerosol", "organic aerosol" ]
+      },
+      {
+        "TYPE" : "AEROSOL_MODE",
+        "NAME" : "dust",
+        "distribution shape" : "LOG_NORMAL",
+        "state variables" : "MASS",
+        "geometric mean diameter" : { "value" : 1.0e-8, "units" : "m" },
+        "geometric standard deviation" : { "value" : 2.3, "units" : "unitless" },
+        "phases" : [ "mineral dust" ]
+      },
+      {
+        "TYPE" : "AEROSOL_MODE",
+        "NAME" : "sea salt",
+        "distribution shape" : "LOG_NORMAL",
+        "state variables" : "MASS",
+        "geometric mean diameter" : { "value" : 1.0e-8, "units" : "m" },
+        "geometric standard deviation" : { "value" : 2.3, "units" : "unitless" },
+        "phases" : [ "aqueous sea salt" ]
+      }
+    ]
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "AEROSOL_REPRESENTATION" },
+    "NAME" : { "type" : "string", "description" : "Unique name for the aerosol representation" },
+    "components" : {
+      "type" : "array",
+      "items" : {
+        "oneOf" : [
+          { "$ref" : "http://gtihub.com/NCAR/MechanismToCode/schemas/aerosol/component/mode.json" },
+          { "$ref" : "http://gtihub.com/NCAR/MechanismToCode/schemas/aerosol/component/single_particle.json" },
+          { "$ref" : "http://gtihub.com/NCAR/MechanismToCode/schemas/aerosol/component/section_set.json" }
+        ]
+      }
+    }
+  },
+  "additionalProperties" : true,
+  "required" : [ "TYPE", "NAME", "components" ]
+}

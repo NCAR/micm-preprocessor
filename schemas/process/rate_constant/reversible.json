@@ -1,0 +1,21 @@
+{
+  "$schema" : "http://json-schema.org/schema",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/reversible.json",
+  "type" : "object",
+  "description" : "Parameters needed to calculate a reversible rate constant based on an equilibrium constant K_eq = A * exp( C * ( 1/T - 1/298 ) ) and a backwards rate constant k_reverse",
+  "example" : {
+    "TYPE" : "RATE_CONST_REVERSIBLE",
+    "A" : 13.3,
+    "C" : 1.2,
+    "k_reverse" : 1.0e5
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "RATE_CONST_REVERSIBLE" },
+    "A" : { "type" : "number", "minimum" : 0.0, "description" : "Pre-exponential factor (units : (#/#)^(num_react - num_prod)" },
+    "C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (1/K)" },
+    "k_reverse" : { "type" : "number", "minimum" : 0.0, "description" : "Reverse rate constant (units : (#/#)^(num_prod-1)/s)" }
+  },
+  "additionalProperties" : true,
+  "required" : [ "TYPE", "A", "k_reverse" ]
+}

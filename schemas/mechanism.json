@@ -46,9 +46,9 @@
       "type" : "array",
       "items" : {
         "anyOf" : [
-          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/gas_phase_first_order.json" },
-          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/gas_phase_ith_order.json" },
-          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/gas_phase_zeroth_order.json" },
+          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/first_order.json" },
+          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/ith_order.json" },
+          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/zeroth_order.json" },
           { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/mass_transfer.json" }
         ]
       }

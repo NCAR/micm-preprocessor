@@ -1,11 +1,12 @@
 {
   "$schema": "http://json-schema.org/schema#",
 
-  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/gas_phase_first_order.json",
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/first_order.json",
   "type" : "object",
   "description" : "A reaction with a single reactant (photolysis, deposition, etc.)",
   "example" : {
-    "TYPE" : "PROCESS_GAS_PHASE_FIRST_ORDER",
+    "TYPE" : "PROCESS_FIRST_ORDER",
+    "phase" : "gas",
     "reactant" : { "species" : "H2O2" },
     "products" : [
       { "species" : "OH", "yield" : 2.000 }
@@ -17,7 +18,8 @@
     "my custom flag" : "This is set by the Fast-J photolysis module"
   },
   "properties" : {
-    "TYPE" : { "type" : "string", "const" : "PROCESS_GAS_PHASE_FIRST_ORDER" },
+    "TYPE" : { "type" : "string", "const" : "PROCESS_FIRST_ORDER" },
+    "phase" : { "type" : "string", "description" : "Unique name for the phase in which this process operates" },
     "reactant" : {
       "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_single.json"
     },

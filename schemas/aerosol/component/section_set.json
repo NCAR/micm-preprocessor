@@ -1,0 +1,45 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.org/NCAR/MechanismToCode/schemas/aerosol/component/section_set.json",
+  "type" : "object",
+  "description" : "A set of sections or bins each comprising the same phase(s), but with unique states",
+  "example" : {
+    "TYPE" : "AEROSOL_SECTION_SET",
+    "NAME" : "sea salt",
+    "number of sections" : 8,
+    "minimum diameter" : { "value" : 1.0e-9, "units" : "m" },
+    "maximum diameter" : { "value" : 1.0e-6, "units" : "m" },
+    "distribution shape" : "LOG",
+    "phases" : [ "aqueous sea salt" ]
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "AEROSOL_SECTION_SET" },
+    "NAME" : { "type" : "string", "description" : "Unique name for the set of sections or bins" },
+    "number of sections" : { "type" : "integer", "minimum" : 1 },
+    "minimum diameter" : {
+      "type" : "object",
+      "description" : "Diameter of particles in the center of the smallest size bin.",
+      "properties" : {
+        "value" : { "type" : "number", "minimum" : 1.0e-10 },
+        "units" : { "type" : "string", "enum" : [ "m" ] }
+      },
+      "additionalProperties" : false,
+      "required" : [ "value", "units" ]
+    },
+    "maximum diameter" : {
+      "type" : "object",
+      "description" : "Diameter of particles in the center of the largest size bin.",
+      "properties" : {
+        "value" : { "type" : "number", "minimum" : 1.0e-10 },
+        "units" : { "type" : "string", "enum" : [ "m" ] }
+      },
+      "additionalProperties" : false,
+      "required" : [ "value", "units" ]
+    },
+    "distribution shape" : { "type" : "string", "enum" : [ "LOG", "LINEAR" ] },
+    "phases" : { "type" : "array", "items" : { "type" : "string", "description" : "Unique names of phases in each bin" } }
+  },
+  "additionalProperties" : true,
+  "required" : [ "TYPE", "NAME", "number of sections", "minimum diameter", "maximum diameter", "distribution shape", "phases" ]
+}
