@@ -27,6 +27,8 @@ ajv.compileAsync( schema ).then( function( validate ) {
   if( !valid ) {
     console.log( ajv.errorsText( validate.errors ) );
     console.log( 'FAIL' );
+  } else if( !checkLookups( validate.schema, test_data ) ) {
+    console.log( 'FAIL' );
   } else {
     console.log( 'PASS' );
   }
@@ -37,4 +39,12 @@ function loadSchema(uri) {
   console.log( 'Opening: ' + uri );
   let path = schema_root_path.concat( uri.split( schema_root_uri )[1] );
   return Promise.resolve( JSON.parse( fs.readFileSync( path ) ) );
+}
+
+// Check lookups in the schema
+function checkLookups( schema, test_data ) {
+
+  // Finish if needed
+
+  return true;
 }
