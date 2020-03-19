@@ -21,6 +21,5 @@
     "E" : { "type" : "number", "default" : 0.0, "description" : "(units: 1/Pa)" },
     "E_a" : { "type" : "number", "default" : 0.0, "description" : "Activation energy (units: J/K)" }
   },
-  "additionalProperties" : true,
   "required" : [ "TYPE", "A" ]
 }

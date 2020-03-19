@@ -1,0 +1,14 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/henrys_law.json",
+  "type" : "object",
+  "description" : "Rate constant data for henry's law partitioning",
+  "example" : {
+    "TYPE" : "RATE_CONST_HENRYS_LAW"
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "RATE_CONST_HENRYS_LAW" }
+  },
+  "required" : [ "TYPE" ]
+}

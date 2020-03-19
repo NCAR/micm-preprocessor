@@ -5,52 +5,50 @@
   "type" : "object",
   "description" : "A collection of aerosol components and a gas-phase that form a comprehensive aerosol representation",
   "example" : {
-    "TYPE" : "AEROSOL_REPRESENTATION",
-    "NAME" : "my first aerosol rep",
-    "components" : [
-      {
+    "gas phase" : "gas",
+    "components" : {
+      "mixed mode" : {
         "TYPE" : "AEROSOL_SECTION_SET",
-        "NAME" : "mixed mode",
         "number of sections" : 8,
         "minimum diameter" : { "value" : 1.0e-9, "units" : "m" },
         "maximum diameter" : { "value" : 1.0e-6, "units" : "m" },
         "distribution shape" : "LOG",
         "phases" : [ "aqueous aerosol", "organic aerosol" ]
       },
-      {
+      "dust" : {
         "TYPE" : "AEROSOL_MODE",
-        "NAME" : "dust",
         "distribution shape" : "LOG_NORMAL",
         "state variables" : "MASS",
         "geometric mean diameter" : { "value" : 1.0e-8, "units" : "m" },
         "geometric standard deviation" : { "value" : 2.3, "units" : "unitless" },
         "phases" : [ "mineral dust" ]
       },
-      {
+      "sea salt" : {
         "TYPE" : "AEROSOL_MODE",
-        "NAME" : "sea salt",
         "distribution shape" : "LOG_NORMAL",
         "state variables" : "MASS",
         "geometric mean diameter" : { "value" : 1.0e-8, "units" : "m" },
         "geometric standard deviation" : { "value" : 2.3, "units" : "unitless" },
         "phases" : [ "aqueous sea salt" ]
       }
-    ]
+    }
   },
   "properties" : {
-    "TYPE" : { "type" : "string", "const" : "AEROSOL_REPRESENTATION" },
-    "NAME" : { "type" : "string", "description" : "Unique name for the aerosol representation" },
+    "gas phase" : { "type" : "string", "description" : "name of the phase to use for the gas-phase of this aerosol" },
     "components" : {
-      "type" : "array",
-      "items" : {
-        "oneOf" : [
-          { "$ref" : "http://gtihub.com/NCAR/MechanismToCode/schemas/aerosol/component/mode.json" },
-          { "$ref" : "http://gtihub.com/NCAR/MechanismToCode/schemas/aerosol/component/single_particle.json" },
-          { "$ref" : "http://gtihub.com/NCAR/MechanismToCode/schemas/aerosol/component/section_set.json" }
-        ]
-      }
+      "type" : "object",
+      "patternProperties" : {
+        "" : {
+          "oneOf" : [
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/aerosol/component/mode.json" },
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/aerosol/component/single_particle.json" },
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/aerosol/component/section_set.json" }
+          ]
+        }
+      },
+      "additionalProperties" : false
     }
   },
   "additionalProperties" : true,
-  "required" : [ "TYPE", "NAME", "components" ]
+  "required" : [ "gas phase", "components" ]
 }

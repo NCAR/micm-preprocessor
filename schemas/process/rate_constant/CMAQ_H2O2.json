@@ -22,6 +22,5 @@
     "k2_B" : { "type" : "number", "default" : 0.0 },
     "k2_C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (units: K)" }
   },
-  "additionalProperties" : true,
   "required" : [ "TYPE", "k1_A", "k2_A" ]
 }

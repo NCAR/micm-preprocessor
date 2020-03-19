@@ -8,7 +8,6 @@
     "units" : { "type" : "string",
                 "enum" : [ "m2/s", "m2 per s", "m2 s-1" ] }
   },
-  "required" : [ "value", "units" ],
-  "additionalProperties" : false
+  "required" : [ "value", "units" ]
 }
 

@@ -14,6 +14,5 @@
     "scaling" : { "type" : "number", "default" : 1.0, "description" : "Scaling factor to apply to externally provided rate constants" },
     "initial value" : { "type" : "number", "default" : 0.0, "description" : "Rate constant to use until a new constant is provided by an external source" }
   },
-  "additionalProperties" : true,
   "required" : [ "TYPE" ]
 }

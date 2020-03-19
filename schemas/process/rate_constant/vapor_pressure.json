@@ -1,0 +1,14 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/vapor_pressure.json",
+  "type" : "object",
+  "description" : "Rate constant for vapor-pressure based partitioning",
+  "example" : {
+    "TYPE" : "RATE_CONST_VAPOR_PRESSURE"
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "RATE_CONST_VAPOR_PRESSURE" }
+  },
+  "required" : [ "TYPE" ]
+}

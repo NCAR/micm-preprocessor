@@ -34,6 +34,7 @@ ajv.compileAsync( schema ).then( function( validate ) {
 
 // Load sub-schemas
 function loadSchema(uri) {
+  console.log( 'Opening: ' + uri );
   let path = schema_root_path.concat( uri.split( schema_root_uri )[1] );
   return Promise.resolve( JSON.parse( fs.readFileSync( path ) ) );
 }

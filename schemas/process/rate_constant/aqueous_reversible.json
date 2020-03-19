@@ -18,6 +18,5 @@
     "C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (1/K)" },
     "k_reverse" : { "type" : "number", "minimum" : 0.0, "description" : "Reverse rate constant (units : (mol_x/m^3_water)^(num_prod-1)/s)" }
   },
-  "additionalProperties" : true,
   "required" : [ "TYPE", "water", "A", "k_reverse" ]
 }

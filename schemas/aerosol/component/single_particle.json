@@ -17,6 +17,5 @@
       "items" : { "type" : "string", "description" : "Unique name of an aerosol phase that can exist in the single particles" }
     }
   },
-  "additionalProperties" : true,
   "required" : [ "TYPE", "NAME", "phases" ]
 }

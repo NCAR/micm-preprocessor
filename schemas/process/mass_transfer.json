@@ -27,11 +27,10 @@
     },
     "rate constant" : {
       "oneOf" : [
-        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/Henrys_law.json" },
-        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/SIMPOL.json" }
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/henrys_law.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/vapor_pressure.json" }
       ]
     }
   },
-  "additionalProperties" : true,
   "required" : [ "TYPE", "reactant", "products", "rate constant" ]
 }

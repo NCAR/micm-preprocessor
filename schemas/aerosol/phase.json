@@ -5,18 +5,14 @@
   "type" : "object",
   "description" : "A well-mixed gas, liquid, or solid. A 'phase' is defined by a single set of physical properties (mass, volume, viscosity, etc.), a lack of internal structure, and the potential presence of a fixed set of chemical species",
   "example" : {
-    "TYPE" : "PHASE",
-    "name" : "inorganic aerosol",
     "species" : [ "SO4_mm", "HSO4_m", "NO3_m", "NH4_p" ]
   },
   "properties" : {
-    "TYPE" : { "type" : "string", "const" : "PHASE" },
-    "name" : { "type" : "string", "description" : "Unique name for this phase (e.g., 'gas', 'organic aerosol', 'sea salt')" },
     "species" : {
       "type" : "array",
       "items" : { "type" : "string", "description" : "Name of a chemical species that can be present in this phase" }
     }
   },
   "additionalProperties" : true,
-  "required" : [ "TYPE", "name", "species" ]
+  "required" : [ "species" ]
 }

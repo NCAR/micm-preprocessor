@@ -6,9 +6,9 @@
     "standard_properties" : {
       "properties" : {
         "chemical formula" : { "type" : "string" },
-        "molecular weight" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/molecularWeight.json" },
-        "Henry's law constant" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/henrysLawConstant.json" },
-        "diffusion coefficient" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/diffusionCoefficient.json"},
+        "molecular weight" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/molecular_weight.json" },
+        "Henry's law constant" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/henrys_law_constant.json" },
+        "diffusion coefficient" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/diffusion_coefficient.json"},
         "density" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/density.json"}
       },
       "additionalProperties" : false
@@ -19,19 +19,13 @@
   "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/species.json",
   "type" : "object",
   "example" : {
-    "TYPE" : "CHEMICAL_SPECIES",
-    "NAME" : "O3",
     "long name" : "ozone",
     "standard properties" : {
       "molecular weight" : 0.048
     }
   },
   "properties" : {
-    "TYPE" : { "type" : "string", "const" : "CHEMICAL_SPECIES" },
-    "NAME" : { "type" : "string", "description" : "Unique name for this species in the chemical system" },
     "long name" : { "type" : "string" },
     "standard properties" : { "$ref" : "#/definitions/standard_properties" }
-  },
-  "required" : [ "TYPE", "name" ],
-  "additionalProperties" : true
+  }
 }

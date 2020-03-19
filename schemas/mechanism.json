@@ -5,10 +5,8 @@
   "type" : "object",
   "description" : "A collection of processes that can be applied to a specific set of chemicals species",
   "example" : {
-    "TYPE" : "MECHANISM",
-    "NAME" : "my first mechanism",
-    "processes" : [
-      {
+    "processes" : {
+      "rxn_H2O2_photo" : {
         "TYPE" : "PROCESS_GAS_PHASE_FIRST_ORDER",
         "reactant" : { "species" : "H2O2" },
         "products" : [
@@ -20,7 +18,7 @@
         },
         "my custom flag" : "This is set by the Fast-J photolysis module"
       },
-      {
+      "2NO_O2__NO2" : {
         "TYPE" : "PROCESS_GAS_PHASE_ITH_ORDER",
         "reactants" : [
           { "species" : "NO", "number" : 2 },
@@ -37,23 +35,23 @@
         },
         "my custom flag" : "This is my favorite reaction"
       }
-    ]
-  },
-  "properties" : {
-    "TYPE" : { "type" : "string", "const" : "MECHANISM" },
-    "NAME" : { "type" : "string", "description" : "Unique name for this mechanism" },
-    "processes" : {
-      "type" : "array",
-      "items" : {
-        "anyOf" : [
-          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/first_order.json" },
-          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/ith_order.json" },
-          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/zeroth_order.json" },
-          { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/mass_transfer.json" }
-        ]
-      }
     }
   },
-  "additionalProperties" : true,
-  "required" : [ "TYPE", "name", "processes" ]
+  "properties" : {
+    "processes" : {
+      "type" : "object",
+      "patternProperties" : {
+        "" : {
+          "oneOf" : [
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/first_order.json" },
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/ith_order.json" },
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/zeroth_order.json" },
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/mass_transfer.json" }
+          ]
+        }
+      },
+      "additionalProperties" : false
+    }
+  },
+  "required" : [ "processes" ]
 }

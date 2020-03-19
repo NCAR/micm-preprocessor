@@ -8,6 +8,5 @@
     "units" : { "type" : "string",
                 "enum" : [ "kg/m3", "kg per m3", "kg m-3" ] }
   },
-  "required" : [ "value", "units" ],
-  "additionalProperties" : false
+  "required" : [ "value", "units" ]
 }

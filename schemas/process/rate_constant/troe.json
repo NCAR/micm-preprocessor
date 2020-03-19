@@ -26,6 +26,5 @@
     "Fc" : { "type" : "number", "default" : 0.6, "description" : "Fall-off curve shape parameter" },
     "N" : { "type" : "number", "default" : 1.0, "description" : "Fall-off curve shape parameter" }
   },
-  "additionalProperties" : true,
   "required" : [ "TYPE", "k0_A", "k_inf_A" ]
 }

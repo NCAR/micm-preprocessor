@@ -9,10 +9,9 @@
       "properties" : {
         "value" : { "type" : "number", "minimum" : 0.0 },
         "units" : { "type" : "string",
-                    "enum" : [ "M/Pa", "M per Pa", "M Pa-1" ] }
+                    "enum" : [ "mol/m3/Pa", "M per m3 per Pa", "mol m-3 Pa-1" ] }
       },
-      "required" : [ "value", "units" ],
-      "additionalProperties" : false
+      "required" : [ "value", "units" ]
     },
 
     "exponential factor" : {
@@ -20,10 +19,8 @@
         "value" : { "type" : "number" },
         "units" : { "type" : "string", "enum" : [ "K" ] }
       },
-      "required" : [ "value", "units" ],
-      "additionalProperties" : false
+      "required" : [ "value", "units" ]
     }
   },
-  "required" : [ "at 298 K", "exponential factor" ],
-  "additionalProperties" : false
+  "required" : [ "at 298 K", "exponential factor" ]
 }

@@ -8,6 +8,5 @@
     "units" : { "type" : "string",
                 "enum" : [ "kg/mol", "kg per mole", "kg mol-1" ] }
   },
-  "required" : [ "value", "units" ],
-  "additionalProperties" : false
+  "required" : [ "value", "units" ]
 }

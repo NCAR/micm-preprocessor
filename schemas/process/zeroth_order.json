@@ -32,6 +32,5 @@
       ]
     }
   },
-  "additionalProperties" : true,
   "required" : [ "TYPE", "reactants", "products", "rate constant" ]
 }

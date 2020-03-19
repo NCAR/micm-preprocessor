@@ -16,6 +16,5 @@
     "C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (1/K)" },
     "k_reverse" : { "type" : "number", "minimum" : 0.0, "description" : "Reverse rate constant (units : (#/#)^(num_prod-1)/s)" }
   },
-  "additionalProperties" : true,
   "required" : [ "TYPE", "A", "k_reverse" ]
 }
