@@ -26,7 +26,7 @@
     }
   },
   "phases" : {
-    "gas" : { "species" : [ "O3", "NO2", "NO" ] }
+    "gas" : { "species" : [ "O3", "NO2", "NO", "O2" ] }
   },
   "aerosol representation" : {
     "gas phase" : "gas",

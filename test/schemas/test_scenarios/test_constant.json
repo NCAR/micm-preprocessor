@@ -1,11 +1,5 @@
 {
   "chemical species" : {
-    "O3" : {
-      "long name" : "ozone",
-      "standard properties" : {
-        "chemical formula" : "O3"
-      }
-    },
     "NO2" : {
       "long name" : "nitrogen dioxide",
       "standard properties" : {
@@ -18,15 +12,15 @@
         "chemical formula" : "NO"
       }
     },
-    "O2" : {
-      "long name" : "molecular oxygen",
+    "O" : {
+      "long name" : "oxygen radical - O(3P)",
       "standard properties" : {
-        "chemical formula" : "O2"
+        "chemical formula" : "O"
       }
     }
   },
   "phases" : {
-    "gas" : { "species" : [ "O3", "NO2", "NO" ] }
+    "gas" : { "species" : [ "NO2", "NO", "O" ] }
   },
   "aerosol representation" : {
     "gas phase" : "gas",
@@ -35,35 +29,16 @@
   "mechanisms" : {
     "simple arrhenius" : {
       "processes" : {
-        "RXN_O3_NO__NO2" : {
-          "TYPE" : "PROCESS_ITH_ORDER",
+        "RXN_NO2__NO_O" : {
+          "TYPE" : "PROCESS_FIRST_ORDER",
           "phase" : "gas",
-          "reactants" : {
-            "O3" : { },
-            "NO" : { }
-          },
+          "reactant" : "NO2",
           "products" : {
-            "NO2" : { }
+            "NO" : { },
+            "O" : { }
           },
           "rate constant" : {
-            "TYPE" : "RATE_CONST_ARRHENIUS",
-            "A" : 3.0E-12,
-            "C" : -1500.0
-          }
-        },
-        "RXN_2NO_O2__NO2" : {
-          "TYPE" : "PROCESS_ITH_ORDER",
-          "phase" : "gas",
-          "reactants" : {
-            "NO" : { "number" : 2 }
-          },
-          "products" : {
-            "NO2" : { "yield" : 2.0 }
-          },
-          "rate constant" : {
-            "TYPE" : "RATE_CONST_ARRHENIUS",
-            "A" : 3.3E-39,
-            "C" : 530.0
+            "TYPE" : "RATE_CONST_CONSTANT"
           }
         }
       }
