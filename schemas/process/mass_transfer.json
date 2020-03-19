@@ -6,25 +6,22 @@
   "description" : "The transfer of mass between phases (gas<->aerosol or aerosol<->aerosol). This could be, for example, evaporation/condensation of a gas-phase species to an aerosol surface or transfer between layers in an onion-type model for condensed-phase viscosity. Multiple products are allowed for this type of process to allow, for example, acid dissociation processes to be combined with evaporation/condensation to an aqueous phase.",
   "example" : {
     "TYPE" : "PROCESS_MASS_TRANSFER",
-    "reactant" : { "species" : "H2O2", "phase" : "gas phase" },
-    "products" : [
-      { "species" : "H2O2", "phase" : "aqueous aerosol" }
-    ],
+    "reactant phase" : "gas",
+    "product phase" : "aqueous aerosol",
+    "reactant" : "H2O2",
+    "products" : {
+      "H2O2" : { }
+    },
     "rate constant" : {
       "TYPE" : "RATE_CONST_HENRYS_LAW"
     }
   },
   "properties" : {
     "TYPE" : { "type" : "string", "const" : "PROCESS_MASS_TRANSFER" },
-    "reactant" : {
-      "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_single.json"
-    },
-    "products" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json"
-      }
-    },
+    "reactant phase" : { "type" : "string", "description" : "Unique name for the phase in which the reactant is present." },
+    "product phase" : { "type" : "string", "description" : "Unique name for the phase in which the products are present." },
+    "reactant" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_single.json" },
+    "products" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json" },
     "rate constant" : {
       "oneOf" : [
         { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/henrys_law.json" },
@@ -32,5 +29,5 @@
       ]
     }
   },
-  "required" : [ "TYPE", "reactant", "products", "rate constant" ]
+  "required" : [ "TYPE", "reactant phase", "product phase", "reactant", "products", "rate constant" ]
 }

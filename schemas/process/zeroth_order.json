@@ -7,9 +7,9 @@
   "example" : {
     "TYPE" : "PROCESS_ZEROTH_ORDER",
     "phase" : "gas",
-    "products" : [
-      { "species" : "NO2" }
-    ],
+    "products" : {
+      "NO2" : { }
+    },
     "rate constant" : {
       "TYPE" : "RATE_CONST_CONSTANT",
       "scaling" : 0.9,
@@ -20,17 +20,12 @@
   "properties" : {
     "TYPE" : { "type" : "string", "enum" : [ "PROCESS_ZEROTH_ORDER" ] },
     "phase" : { "type" : "string", "description" : "Unique name for the phase in which this process operates" },
-    "products" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json"
-      }
-    },
+    "products" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json" },
     "rate constant" : {
       "oneOf" : [
         { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/constant.json" }
       ]
     }
   },
-  "required" : [ "TYPE", "reactants", "products", "rate constant" ]
+  "required" : [ "TYPE", "phase", "products", "rate constant" ]
 }

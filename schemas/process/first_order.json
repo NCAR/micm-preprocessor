@@ -7,10 +7,10 @@
   "example" : {
     "TYPE" : "PROCESS_FIRST_ORDER",
     "phase" : "gas",
-    "reactant" : { "species" : "H2O2" },
-    "products" : [
-      { "species" : "OH", "yield" : 2.000 }
-    ],
+    "reactant" : "H2O2",
+    "products" : {
+      "OH" : { "yield" : 2.000 }
+    },
     "rate constant" : {
       "TYPE" : "RATE_CONST_CONSTANT",
       "Fast-J id" : "H2O2"
@@ -20,20 +20,13 @@
   "properties" : {
     "TYPE" : { "type" : "string", "const" : "PROCESS_FIRST_ORDER" },
     "phase" : { "type" : "string", "description" : "Unique name for the phase in which this process operates" },
-    "reactant" : {
-      "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_single.json"
-    },
-    "products" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json"
-      }
-    },
+    "reactant" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_single.json" },
+    "products" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json" },
     "rate constant" : {
       "oneOf" : [
         { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/constant.json" }
       ]
     }
   },
-  "required" : [ "TYPE", "reactant", "products", "rate constant" ]
+  "required" : [ "TYPE", "phase", "reactant", "products", "rate constant" ]
 }

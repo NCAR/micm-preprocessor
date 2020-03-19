@@ -5,20 +5,20 @@
   "type" : "object",
   "description" : "Products of a reaction",
   "example" : {
-    "species" : "O3",
-    "yield" : 1.59
+    "O3" : { "yield" : 1.59 },
+    "NO2" : { }
   },
-  "properties" : {
-    "species" : {
-      "type" : "string",
-      "description" : "Species name. This species must be present in the set of chemical species this process is applied to. Specific processes may require certain species properties to also be present."
-    },
-    "yield" : {
-      "type" : "number",
-      "description" : "The yield of a particular species. This can be a non-integer value, and can be negative for a reactant whose concentration should not be considered in calculating the reaction rate.",
-      "default" : 1.0
+  "patternProperties" : {
+    "" : {
+      "type" : "object",
+      "properties" : {
+        "yield" : {
+          "type" : "number",
+          "description" : "The yield of a particular species. This can be a non-integer value, and can be negative for a reactant whose concentration should not be considered in calculating the reaction rate.",
+          "default" : 1.0
+        }
+      }
     }
   },
-  "additionalProperties" : false,
-  "required" : [ "species" ]
+  "additionalProperties" : false
 }

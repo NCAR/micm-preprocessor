@@ -7,13 +7,13 @@
   "example" : {
     "TYPE" : "PROCESS_ITH_ORDER",
     "phase" : "gas",
-    "reactants" : [
-      { "species" : "NO2", "number" : 2 },
-      { "species" : "O2" }
-    ],
-    "products" : [
-      { "species" : "NO2", "yield" : 2.000 }
-    ],
+    "reactants" : {
+      "NO2" : { "number" : 2 },
+      "O2" : { }
+    },
+    "products" : {
+      "NO2" : { "yield" : 2.000 }
+    },
     "rate constant" : {
       "TYPE" : "RATE_CONST_ARRHENIUS",
       "A" : 3.3E-39,
@@ -25,18 +25,8 @@
   "properties" : {
     "TYPE" : { "type" : "string", "const" : "PROCESS_ITH_ORDER" },
     "phase" : { "type" : "string", "description" : "Unique name for the phase in which this process operates" },
-    "reactants" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_multiple.json"
-      }
-    },
-    "products" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json"
-      }
-    },
+    "reactants" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_multiple.json" },
+    "products" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json" },
     "rate constant" : {
       "anyOf" : [
         { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/arrhenius.json" },
@@ -48,5 +38,5 @@
       ]
     }
   },
-  "required" : [ "TYPE", "reactants", "products", "rate constant" ]
+  "required" : [ "TYPE", "phase", "reactants", "products", "rate constant" ]
 }
