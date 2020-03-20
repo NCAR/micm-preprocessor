@@ -1,0 +1,57 @@
+{
+  "chemical species" : {
+    "O" : {
+      "long name" : "oxygen radical O(3P)",
+      "standard properties" : {
+        "chemical formula" : "O"
+      }
+    },
+    "NO2" : {
+      "long name" : "nitrogen dioxide",
+      "standard properties" : {
+        "chemical formula" : "NO2"
+      }
+    },
+    "NO3" : {
+      "long name" : "nitrate radical",
+      "standard propertes" : {
+        "chemical formula" : "NO3"
+      }
+    }
+  },
+  "phases" : {
+    "gas" : { "species" : [ "O", "NO2", "NO3" ] }
+  },
+  "aerosol representation" : {
+    "gas phase" : "gas",
+    "components" : { }
+  },
+  "mechanisms" : {
+    "simple arrhenius" : {
+      "processes" : {
+        "RXN_O_NO2__NO3" : {
+          "TYPE" : "PROCESS_ITH_ORDER",
+          "phase" : "gas",
+          "reactants" : {
+            "O" : { },
+            "NO2" : { }
+          },
+          "products" : {
+            "NO3" : { }
+          },
+          "rate constant" : {
+            "TYPE" : "RATE_CONST_TROE",
+            "k0_A" : 2.5E-31,
+            "k0_B" : -1.8,
+            "k0_C" : -0.0E+00,
+            "kinf_A" : 2.2E-11,
+            "kinf_B" : -0.7,
+            "kinf_C" : -0.0E+00,
+            "Fc" : 0.6,
+            "N" : 1.0
+          }
+        }
+      }
+    }
+  }
+}

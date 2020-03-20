@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/zeroth_order.json",
+  "type" : "object",
+  "description" : "A process with no reactants (e.g., emissions).",
+  "example" : {
+    "TYPE" : "PROCESS_ZEROTH_ORDER",
+    "phase" : "gas",
+    "products" : {
+      "NO2" : { }
+    },
+    "rate constant" : {
+      "TYPE" : "RATE_CONST_CONSTANT",
+      "scaling" : 0.9,
+      "HERMES Id" : "NO2"
+    },
+    "my custom flag" : "The rate for this process is set by the HERMES emissions model."
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "enum" : [ "PROCESS_ZEROTH_ORDER" ] },
+    "phase" : { "type" : "string", "description" : "Unique name for the phase in which this process operates" },
+    "products" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json" },
+    "rate constant" : {
+      "oneOf" : [
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/constant.json" }
+      ]
+    }
+  },
+  "required" : [ "TYPE", "phase", "products", "rate constant" ]
+}

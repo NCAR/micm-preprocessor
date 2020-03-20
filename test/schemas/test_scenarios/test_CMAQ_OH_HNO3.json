@@ -1,0 +1,55 @@
+{
+  "chemical species" : {
+    "OH" : {
+      "long name" : "hydroxyl radical",
+      "standard properties" : {
+        "chemical formula" : "OH"
+      }
+    },
+    "HNO3" : {
+      "long name" : "nitric acid",
+      "standard properties" : {
+        "chemical formula" : "HNO3"
+      }
+    },
+    "NO3" : {
+      "long name" : "nitrate radical",
+      "standard propertes" : {
+        "chemical formula" : "NO3"
+      }
+    }
+  },
+  "phases" : {
+    "gas" : { "species" : [ "OH", "HNO3", "NO3" ] }
+  },
+  "aerosol representation" : {
+    "gas phase" : "gas",
+    "components" : { }
+  },
+  "mechanisms" : {
+    "simple arrhenius" : {
+      "processes" : {
+        "RXN_OH_HNO3__NO3" : {
+          "TYPE" : "PROCESS_ITH_ORDER",
+          "phase" : "gas",
+          "reactants" : {
+            "OH" : { },
+            "HNO3" : { }
+          },
+          "products" : {
+            "NO3" : { }
+          },
+          "rate constant" : {
+            "TYPE" : "RATE_CONST_CMAQ_OH_HNO3",
+            "k0_A" : 2.4E-14,
+            "k0_C" : 460.0,
+            "k2_A" : 2.7E-17,
+            "k2_C" : 2199.0,
+            "k3_A" : 6.5E-34,
+            "k3_C" : 1335.0
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json",
+  "type" : "object",
+  "description" : "Products of a reaction",
+  "example" : {
+    "O3" : { "yield" : 1.59 },
+    "NO2" : { }
+  },
+  "patternProperties" : {
+    "" : {
+      "type" : "object",
+      "properties" : {
+        "yield" : {
+          "type" : "number",
+          "description" : "The yield of a particular species. This can be a non-integer value, and can be negative for a reactant whose concentration should not be considered in calculating the reaction rate.",
+          "default" : 1.0
+        }
+      }
+    }
+  },
+  "additionalProperties" : false
+}

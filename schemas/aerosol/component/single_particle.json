@@ -1,0 +1,21 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/aerosol/component/single_particle.json",
+  "type" : "object",
+  "description" : "A single particle or collection of identical particles comprising specific phase(s).",
+  "example" : {
+    "TYPE" : "AEROSOL_SINGLE_PARTICLE",
+    "NAME" : "single particles",
+    "phases" : [ "aqueous aerosol", "organic aerosol", "mineral dust" ]
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : [ "AEROSOL_SINGLE_PARTICLE" ] },
+    "NAME" : { "type" : "string", "description" : "Unique name for this collection of single particles" },
+    "phases" : {
+      "type" : "array",
+      "items" : { "type" : "string", "description" : "Unique name of an aerosol phase that can exist in the single particles" }
+    }
+  },
+  "required" : [ "TYPE", "NAME", "phases" ]
+}

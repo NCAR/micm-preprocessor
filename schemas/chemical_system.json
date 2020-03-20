@@ -1,0 +1,34 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_system.json",
+  "type" : "object",
+  "description" : "A complete aerosol system: gases, particles, and processes that affect them.",
+  "properties" : {
+    "chemical species" : {
+      "type" : "object",
+      "patternProperties" : {
+        "" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/species.json" }
+      },
+      "additionalProperties" : false
+    },
+    "phases" : {
+      "type" : "object",
+      "patternProperties" : {
+        "" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/aerosol/phase.json" }
+      },
+      "additionalProperties" : false
+    },
+    "aerosol representation" : {
+        "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/aerosol/representation.json"
+    },
+    "mechanisms" : {
+      "type" : "object",
+      "patternProperties" : {
+        "" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/mechanism.json" }
+      },
+      "additionalProperties" : false
+    }
+  },
+  "required" : [ "chemical species", "phases", "aerosol representation", "mechanisms" ]
+}

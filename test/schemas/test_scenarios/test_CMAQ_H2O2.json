@@ -1,0 +1,46 @@
+{
+  "chemical species" : {
+    "HO2" : {
+      "long name" : "hydroperoxy radical",
+      "standard properties" : {
+        "chemical formula" : "HO2"
+      }
+    },
+    "H2O2" : {
+      "long name" : "hydrogen peroxide",
+      "standard properties" : {
+        "chemical formula" : "H2O2"
+      }
+    }
+  },
+  "phases" : {
+    "gas" : { "species" : [ "HO2", "H2O2"] }
+  },
+  "aerosol representation" : {
+    "gas phase" : "gas",
+    "components" : { }
+  },
+  "mechanisms" : {
+    "simple arrhenius" : {
+      "processes" : {
+        "RXN_O3_NO__NO2" : {
+          "TYPE" : "PROCESS_ITH_ORDER",
+          "phase" : "gas",
+          "reactants" : {
+            "HO2" : { "number" : 2 }
+          },
+          "products" : {
+            "H2O2" : { }
+          },
+          "rate constant" : {
+            "TYPE" : "RATE_CONST_CMAQ_H2O2",
+            "k1_A" : 2.3E-13,
+            "k1_C" : 6.0E+02,
+            "k2_A" : 1.7E-33,
+            "k2_C" : 1.0E+03
+          }
+        }
+      }
+    }
+  }
+}

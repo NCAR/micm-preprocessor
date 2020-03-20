@@ -1,0 +1,47 @@
+{
+  "chemical species" : {
+    "NO2" : {
+      "long name" : "nitrogen dioxide",
+      "standard properties" : {
+        "chemical formula" : "NO2"
+      }
+    },
+    "NO" : {
+      "long name" : "nitrogen oxide",
+      "standard propertes" : {
+        "chemical formula" : "NO"
+      }
+    },
+    "O" : {
+      "long name" : "oxygen radical - O(3P)",
+      "standard properties" : {
+        "chemical formula" : "O"
+      }
+    }
+  },
+  "phases" : {
+    "gas" : { "species" : [ "NO2", "NO", "O" ] }
+  },
+  "aerosol representation" : {
+    "gas phase" : "gas",
+    "components" : { }
+  },
+  "mechanisms" : {
+    "simple arrhenius" : {
+      "processes" : {
+        "RXN_NO2__NO_O" : {
+          "TYPE" : "PROCESS_FIRST_ORDER",
+          "phase" : "gas",
+          "reactant" : "NO2",
+          "products" : {
+            "NO" : { },
+            "O" : { }
+          },
+          "rate constant" : {
+            "TYPE" : "RATE_CONST_CONSTANT"
+          }
+        }
+      }
+    }
+  }
+}

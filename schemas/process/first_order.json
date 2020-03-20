@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/first_order.json",
+  "type" : "object",
+  "description" : "A reaction with a single reactant (photolysis, deposition, etc.)",
+  "example" : {
+    "TYPE" : "PROCESS_FIRST_ORDER",
+    "phase" : "gas",
+    "reactant" : "H2O2",
+    "products" : {
+      "OH" : { "yield" : 2.000 }
+    },
+    "rate constant" : {
+      "TYPE" : "RATE_CONST_CONSTANT",
+      "Fast-J id" : "H2O2"
+    },
+    "my custom flag" : "This is set by the Fast-J photolysis module"
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "PROCESS_FIRST_ORDER" },
+    "phase" : { "type" : "string", "description" : "Unique name for the phase in which this process operates" },
+    "reactant" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_single.json" },
+    "products" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json" },
+    "rate constant" : {
+      "oneOf" : [
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/constant.json" }
+      ]
+    }
+  },
+  "required" : [ "TYPE", "phase", "reactant", "products", "rate constant" ]
+}

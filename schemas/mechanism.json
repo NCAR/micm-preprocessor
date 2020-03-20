@@ -1,0 +1,57 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/mechanism.json",
+  "type" : "object",
+  "description" : "A collection of processes that can be applied to a specific set of chemicals species",
+  "example" : {
+    "processes" : {
+      "rxn_H2O2_photo" : {
+        "TYPE" : "PROCESS_GAS_PHASE_FIRST_ORDER",
+        "reactant" : { "species" : "H2O2" },
+        "products" : [
+          { "species" : "OH", "yield" : 2.000 }
+        ],
+        "rate constant" : {
+          "TYPE" : "RATE_CONST_CONSTANT",
+          "Fast-J id" : "H2O2"
+        },
+        "my custom flag" : "This is set by the Fast-J photolysis module"
+      },
+      "2NO_O2__NO2" : {
+        "TYPE" : "PROCESS_GAS_PHASE_ITH_ORDER",
+        "reactants" : [
+          { "species" : "NO", "number" : 2 },
+          { "species" : "O2" }
+        ],
+        "products" : [
+          { "species" : "NO2", "yield" : 2.000 }
+        ],
+        "rate constant" : {
+          "TYPE" : "RATE_CONST_ARRHENIUS",
+          "A" : 3.3E-39,
+          "B" : 0.0E+00,
+          "C" : 530.0
+        },
+        "my custom flag" : "This is my favorite reaction"
+      }
+    }
+  },
+  "properties" : {
+    "processes" : {
+      "type" : "object",
+      "patternProperties" : {
+        "" : {
+          "oneOf" : [
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/first_order.json" },
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/ith_order.json" },
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/zeroth_order.json" },
+            { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/mass_transfer.json" }
+          ]
+        }
+      },
+      "additionalProperties" : false
+    }
+  },
+  "required" : [ "processes" ]
+}

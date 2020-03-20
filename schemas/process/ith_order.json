@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/ith_order.json",
+  "type" : "object",
+  "description" : "A process with one or more reactants",
+  "example" : {
+    "TYPE" : "PROCESS_ITH_ORDER",
+    "phase" : "gas",
+    "reactants" : {
+      "NO2" : { "number" : 2 },
+      "O2" : { }
+    },
+    "products" : {
+      "NO2" : { "yield" : 2.000 }
+    },
+    "rate constant" : {
+      "TYPE" : "RATE_CONST_ARRHENIUS",
+      "A" : 3.3E-39,
+      "B" : 0.0E+00,
+      "C" : 530.0
+    },
+    "my custom flag" : "This is my favorite reaction"
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "PROCESS_ITH_ORDER" },
+    "phase" : { "type" : "string", "description" : "Unique name for the phase in which this process operates" },
+    "reactants" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_multiple.json" },
+    "products" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json" },
+    "rate constant" : {
+      "anyOf" : [
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/arrhenius.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/aqueous_arrhenius.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/troe.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/CMAQ_H2O2.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/CMAQ_OH_HNO3.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/constant.json" }
+      ]
+    }
+  },
+  "required" : [ "TYPE", "phase", "reactants", "products", "rate constant" ]
+}

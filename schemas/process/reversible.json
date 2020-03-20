@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/reversible.json",
+  "type" : "object",
+  "description" : "A reversible process with one or more reactants",
+  "example" : {
+    "TYPE" : "PROCESS_REVERSIBLE",
+    "phase" : "cloud water",
+    "water species for molar units" : "H2O_aq",
+    "reactants" : {
+      "HSO4_m" : { }
+    },
+    "products" : {
+      "SO4_mm" : { },
+      "H_p" : { }
+    },
+    "rate constant" : {
+      "TYPE" : "RATE_CONST_REVERSIBLE",
+      "A" : 1.02e-2,
+      "C" : 2700.0,
+      "k_reverse" : 1.0e11
+    }
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "PROCESS_REVERSIBLE" },
+    "phase" : { "type" : "string", "description" : "Unique name for the phase in which this process operates" },
+    "water species for molar units" : { "type" : "string", "description" : "To have this reaction rate calculated for molar units, include this key-value pair to specify the name of water in the condensed phase in which this process operates" },
+    "reactants" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_multiple.json" },
+    "products" : { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/product.json" },
+    "rate constant" : {
+      "anyOf" : [
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/reversible.json" },
+        { "$ref" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/aqueous_reversible.json" }
+      ]
+    }
+  },
+  "required" : [ "TYPE", "phase", "reactants", "products", "rate constant" ]
+}

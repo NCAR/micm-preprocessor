@@ -1,0 +1,26 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/CMAQ_H2O2.json",
+  "type" : "object",
+  "description" : "Parameters needed to calculate rate constants of the form k = k1 + k2[M], where k1 and k2 are Arrhenius rate constants of the form k = A * exp( C/T ) * ( T/300 )^B, where T is temperature (K).",
+  "example" : {
+    "TYPE" : "RATE_CONST_CMAQ_H2O2",
+    "k1_A" : 13.3,
+    "k1_B" : 1.2,
+    "k1_C" : -0.43,
+    "k2_A" : 13.3,
+    "k2_B" : 1.2,
+    "k2_C" : -0.43
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "RATE_CONST_CMAQ_H2O2" },
+    "k1_A" : { "type" : "number", "minimum" : 0.0, "description" : "Pre-exponential factor (units : (#/#)^(num_react-1)/s" },
+    "k1_B" : { "type" : "number", "default" : 0.0 },
+    "k1_C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (units: K)" },
+    "k2_A" : { "type" : "number", "minimum" : 0.0, "description" : "Pre-exponential factor (units : (#/#)^(num_react-1)/s" },
+    "k2_B" : { "type" : "number", "default" : 0.0 },
+    "k2_C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (units: K)" }
+  },
+  "required" : [ "TYPE", "k1_A", "k2_A" ]
+}

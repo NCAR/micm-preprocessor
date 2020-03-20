@@ -1,0 +1,27 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/rate_constant/aqueous_arrhenius.json",
+  "type" : "object",
+  "description" : "Parameters needed to calculate an Arrhenius-like rate constant of the form A * exp( -E_a / (k_B * T) ) * ( T / D )^B * (1 + E * P) where T is temperature (K), P is pressure (Pa), E_a is the activation energy (J) for the reaction, k_B is the Boltzmann constant (J/K), and A, B, D, and E are reaction parameters. A parameter C == -E_a / k_B may be specified instead of E_a. Rates will be calculated for units of mol_x / m^3_water where x represents the species participating in the reaction",
+  "example" : {
+    "TYPE" : "RATE_CONST_AQUEOUS_ARRHENIUS",
+    "water" : "H2O_aq",
+    "A" : 13.3,
+    "B" : 1.2,
+    "C" : -0.43,
+    "D" : 298.0,
+    "E" : 1.3e-4
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : "RATE_CONST_AQUEOUS_ARRHENIUS" },
+    "water" : { "type" : "string", "description" : "Name for water in the condensed phase in which the process operates" },
+    "A" : { "type" : "number", "minimum" : 0.0, "description" : "Pre-exponential factor (units : (mol_x/m^3_water)^(num_react-1)/s" },
+    "B" : { "type" : "number", "default" : 0.0 },
+    "C" : { "type" : "number", "default" : 0.0, "description" : "Exponential term (units: K)" },
+    "D" : { "type" : "number", "default" : 300.0, "description" : "(units: K)" },
+    "E" : { "type" : "number", "default" : 0.0, "description" : "(units: 1/Pa)" },
+    "E_a" : { "type" : "number", "default" : 0.0, "description" : "Activation energy (units: J/K)" }
+  },
+  "required" : [ "TYPE", "A", "water" ]
+}

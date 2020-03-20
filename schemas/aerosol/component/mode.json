@@ -1,0 +1,42 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/aerosol/component/mode.json",
+  "type" : "object",
+  "description" : "An aerosol mode comprising one or more aerosol phases.",
+  "example" : {
+    "TYPE" : "AEROSOL_MODE",
+    "distribution shape" : "LOG_NORMAL",
+    "state variables" : "MASS",
+    "geometric mean diameter" : { "value" : 1.0e-8, "units" : "m" },
+    "geometric standard deviation" : { "value" : 2.3, "units" : "unitless" },
+    "phases" : [ "mineral dust" ]
+  },
+  "properties" : {
+    "TYPE" : { "type" : "string", "const" : [ "AEROSOL_MODE" ] },
+    "distribution shape" : { "type" : "string", "enum" : [ "LOG_NORMAL" ] },
+    "state variables" : {
+      "type" : "string",
+      "enum" : [ "MASS", "MASS_AND_NUMBER" ],
+      "description" : "Prognostic variables needed to describe properties of this mode"
+    },
+    "geometric mean diameter" : {
+      "type" : "object",
+      "properties" : {
+        "value" : { "type" : "number", "minimum" : 1.0E-10 },
+        "units" : { "type" : "string", "enum" : [ "m" ] }
+      },
+      "required" : [ "value", "units" ]
+    },
+    "geometric standard deviation" : {
+      "type" : "object",
+      "properties" : {
+        "value" : { "type" : "number", "minimum" : 0.0 },
+        "units" : { "type" : "string", "enum" : [ "n/a", "unitless", "none" ] }
+      },
+      "required" : [ "value", "units" ]
+    },
+    "phases" : { "type" : "array", "items" : { "type" : "string", "description" : "Unique names of phases in each bin" } }
+  },
+  "required" : [ "TYPE", "distribution shape", "state variables", "phases" ]
+}

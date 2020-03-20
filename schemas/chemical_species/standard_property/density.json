@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/chemical_species/standard_property/density.json",
+  "type" : "object",
+  "properties" : {
+    "value" : { "type" : "number", "minimum" : 1.0e-3, "maximum" : 1.0e3 },
+    "units" : { "type" : "string",
+                "enum" : [ "kg/m3", "kg per m3", "kg m-3" ] }
+  },
+  "required" : [ "value", "units" ]
+}

@@ -1,0 +1,7 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+
+  "$id" : "http://github.com/NCAR/MechanismToCode/schemas/process/common/reactant_single.json",
+  "type" : "string",
+  "description" : "Reactant in processes with only one reactant, such as photolysis, first-order loss, etc."
+}
