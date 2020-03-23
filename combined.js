@@ -544,7 +544,7 @@ function constructJacobian(req, res, next) {
   rate_constant_module += "  contains\n\n";
   rate_constant_module += j_map.toCode(1);
   rate_constant_module += k_collection.toCode(1);
-  //rate_constant_module += special_k_collection.toCode();
+  rate_constant_module += special_k_collection.toCode();
   rate_constant_module += "\nend module rate_constants_utility\n";
 
 
@@ -1027,14 +1027,13 @@ function reorderedIndex (reorderedMolecules){
 }
 
 
-// convert terms to code
+// convert terms to rate calculating code
 // expressions are of the following form:
 //   netTendency * product of reactants * conversion to number_density * rateConstant
-function termToCode (term, moleculeIndex, indexOffset) {
+function termToRateCode(term, moleculeIndex, indexOffset) {
   let idxReaction = term.idxReaction;
   let arrayOfVmr = term.arrayOfVmr;
   let troeTerm = term.troeTerm;
-  let netTendency = term.netTendency;
   let reactionString = term.reactionString;
 
   let rateConstString = "rate_constant(" +(parseInt(idxReaction) + parseInt(indexOffset))+")";
@@ -1048,31 +1047,41 @@ function termToCode (term, moleculeIndex, indexOffset) {
   }
   if(troeTerm) {numberDensityArray.push(troeDensityConversion);}
 
-  let tendencyString =""; 
-  if (netTendency > 0) {
-    if (netTendency != 1){
-      tendencyString = "+ "+netTendency+"*" +rateConstString;
-    } else {
-      tendencyString = "+ "+rateConstString;
-    }
-  } else {
-    if (netTendency != -1){
-      tendencyString = "- "+Math.abs(netTendency)+"*" +rateConstString;
-    } else {
-      tendencyString = "- "+rateConstString;
-    }
-  }
-
   let arrayOfNumberDensityString = "";
   let termString = "";
   if (arrayOfVmr.length > 0) {
     arrayOfNumberDensityString = numberDensityArray.join(" * ") 
-    termString = tendencyString + " * " + arrayOfNumberDensityString;
+    termString = rateConstString + " * " + arrayOfNumberDensityString;
   } else {
-    termString = tendencyString;
+    termString = rateConstString;
   }
 
   return termString;
+}
+
+// convert terms to code
+// expressions are of the following form:
+//   netTendency * product of reactants * conversion to number_density * rateConstant
+function termToCode (term, moleculeIndex, indexOffset) {
+  let rateString = termToRateCode(term, moleculeIndex, indexOffset);
+  let netTendency = term.netTendency;
+
+  let termString = "";
+  if (netTendency > 0) {
+    if (netTendency != 1){
+      termString = "+ "+netTendency+"*" +rateString;
+    } else {
+      termString = "+ "+rateString;
+    }
+  } else {
+    if (netTendency != -1){
+      termString = "- "+Math.abs(netTendency)+"*" +rateString;
+    } else {
+      termString = "- "+rateString;
+    }
+  }
+  return termString;
+
 }
 
 function toCode(req, res, next) {
@@ -1082,6 +1091,7 @@ function toCode(req, res, next) {
   let reorderedMolecules = res.locals.reorderedMolecules;
   let init_jac = res.locals.init_jac;
   let force = res.locals.reorderedForcing;
+  let reactions = content.mechanism.reactions;
 
   // find index for molecules, as reordered by pivot
   var moleculeIndex =reorderedIndex(reorderedMolecules);
@@ -1255,6 +1265,46 @@ function toCode(req, res, next) {
 
   }
 
+  // Generate code for calculating rates and naming reactions
+  reactions.calcRatesToCode = function(indexOffset=0) {
+
+    let code_string = "\n";
+    code_string += "function reaction_rates(rate_constant, number_density, number_density_air)\n";
+    code_string += "  ! Compute reaction rates\n";
+    code_string += "\n";
+    code_string += "  real(r8) :: reaction_rates("+reactions.length+")\n";
+    code_string += "  real(r8), intent(in) :: rate_constant(:)\n";
+    code_string += "  real(r8), intent(in) :: number_density(:)\n";
+    code_string += "  real(r8), intent(in) :: number_density_air(:)\n";
+
+    this.forEach(function(reaction) {
+      let rateTerm = new term(reaction.idxReaction, reaction.reactants, reaction.troe, 1, reaction.reactionString);
+      let termCode = termToRateCode(rateTerm, moleculeIndex, indexOffset);
+      code_string += "\n";
+      code_string += "  ! "+rateTerm.reactionString+"\n";
+      code_string += "  reaction_rates("+reaction.idxReaction+") = "+termCode+"\n";
+    });
+
+    code_string += "\n";
+    code_string += "end function reaction_rates\n";
+    code_string += "\n";
+    code_string += "function rate_names()\n";
+    code_string += "  ! Get names for each reaction\n";
+    code_string += "\n";
+    code_string += "  character(len=128) :: rate_names("+reactions.length+")\n"
+      code_string += "\n";
+
+    this.forEach(function(reaction) {
+      code_string += "  rate_names("+reaction.idxReaction+") = '"+reaction.label+"'\n";
+    });
+
+    code_string += "\n";
+    code_string += "end function rate_names\n";
+
+    return code_string;
+
+  }
+
   let indexOffset = 1; //convert to fortran
   let module = "module kinetics_utilities\n";
   module += "use ccpp_kinds, only: r8 => kind_phys\n\n";
@@ -1271,6 +1321,7 @@ function toCode(req, res, next) {
   module += kinetics_final.toCode(indexOffset);
   module += init_jac.factored_alpha_minus_jac(indexOffset);
   module += force.toCode(indexOffset);
+  module += reactions.calcRatesToCode(indexOffset);
   module += init_jac.dforce_dy_times_vector_string(indexOffset);
   module += "\nend module kinetics_utilities\n";
 
