@@ -1288,7 +1288,7 @@ function toCode(req, res, next) {
     code_string += "\n";
     code_string += "end function reaction_rates\n";
     code_string += "\n";
-    code_string += "function rate_names()\n";
+    code_string += "function reaction_names()\n";
     code_string += "  ! Get names for each reaction\n";
     code_string += "\n";
     code_string += "  character(len=128) :: rate_names("+reactions.length+")\n"
@@ -1299,7 +1299,7 @@ function toCode(req, res, next) {
     });
 
     code_string += "\n";
-    code_string += "end function rate_names\n";
+    code_string += "end function reaction_names\n";
 
     return code_string;
 
