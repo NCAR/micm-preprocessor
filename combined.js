@@ -1275,31 +1275,40 @@ function toCode(req, res, next) {
     code_string += "  real(r8) :: reaction_rates("+reactions.length+")\n";
     code_string += "  real(r8), intent(in) :: rate_constant(:)\n";
     code_string += "  real(r8), intent(in) :: number_density(:)\n";
-    code_string += "  real(r8), intent(in) :: number_density_air(:)\n";
+    code_string += "  real(r8), intent(in) :: number_density_air\n";
 
     this.forEach(function(reaction) {
       let rateTerm = new term(reaction.idxReaction, reaction.reactants, reaction.troe, 1, reaction.reactionString);
       let termCode = termToRateCode(rateTerm, moleculeIndex, indexOffset);
       code_string += "\n";
       code_string += "  ! "+rateTerm.reactionString+"\n";
-      code_string += "  reaction_rates("+reaction.idxReaction+") = "+termCode+"\n";
+      code_string += "  reaction_rates("+ (+reaction.idxReaction + +1) +") = "+termCode+"\n";
     });
 
     code_string += "\n";
     code_string += "end function reaction_rates\n";
     code_string += "\n";
+
+    return code_string;
+  }
+
+  // Generate code for an array of reaction names
+  reactions.rateNamesToCode = function(indexOffset=0) {
+
+    let code_string = "\n"
     code_string += "function reaction_names()\n";
-    code_string += "  ! Get names for each reaction\n";
+    code_string += "  ! Reaction names\n";
     code_string += "\n";
-    code_string += "  character(len=128) :: rate_names("+reactions.length+")\n"
-      code_string += "\n";
+    code_string += "  character(len=128) :: reaction_names("+reactions.length+")\n";
+    code_string += "\n";
 
     this.forEach(function(reaction) {
-      code_string += "  rate_names("+reaction.idxReaction+") = '"+reaction.label+"'\n";
+      code_string += "  reaction_names("+ (+reaction.idxReaction + +1) + ") = '"+reaction.label+"'\n";
     });
 
     code_string += "\n";
     code_string += "end function reaction_names\n";
+    code_string += "\n";
 
     return code_string;
 
@@ -1314,14 +1323,21 @@ function toCode(req, res, next) {
   module += "! "+res.locals.tagStats+"\n\n";
   module += "  use factor_solve_utilities, only:  factor \n\n"
   module += "  implicit none\n\n";
-  module += "  public :: dforce_dy_times_vector, factored_alpha_minus_jac, p_force, dforce_dy, kinetics_init, kinetics_final \n";
-  module += "  contains\n\n";
+  module += "  private\n";
+  module += "  public :: dforce_dy_times_vector, factored_alpha_minus_jac, p_force, reaction_rates, reaction_names, &\n"
+  module += "            dforce_dy, kinetics_init, kinetics_final\n";
+  module += "\n";
+  module += "  ! Total number of reactions\n";
+  module += "  integer, parameter, public :: number_of_reactions = "+reactions.length+"\n";
+  module += "\n";
+  module += "  contains\n";
   module += init_jac.toCode(indexOffset);
   module += kinetics_init.toCode(indexOffset);
   module += kinetics_final.toCode(indexOffset);
   module += init_jac.factored_alpha_minus_jac(indexOffset);
   module += force.toCode(indexOffset);
   module += reactions.calcRatesToCode(indexOffset);
+  module += reactions.rateNamesToCode(indexOffset);
   module += init_jac.dforce_dy_times_vector_string(indexOffset);
   module += "\nend module kinetics_utilities\n";
 
