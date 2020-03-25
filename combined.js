@@ -1091,7 +1091,16 @@ function toCode(req, res, next) {
   let reorderedMolecules = res.locals.reorderedMolecules;
   let init_jac = res.locals.init_jac;
   let force = res.locals.reorderedForcing;
-  let reactions = content.mechanism.reactions;
+  let reactions = res.locals.reactions;
+  let photoDecomps = res.locals.photoDecomps;
+
+  let allReactions = [];
+  reactions.forEach(function(reaction) {
+    allReactions.push(reaction);
+  });
+  photoDecomps.forEach(function(reaction) {
+    allReactions.push(reaction);
+  });
 
   // find index for molecules, as reordered by pivot
   var moleculeIndex =reorderedIndex(reorderedMolecules);
@@ -1266,13 +1275,13 @@ function toCode(req, res, next) {
   }
 
   // Generate code for calculating rates and naming reactions
-  reactions.calcRatesToCode = function(indexOffset=0) {
+  allReactions.calcRatesToCode = function(indexOffset=0) {
 
     let code_string = "\n";
     code_string += "function reaction_rates(rate_constant, number_density, number_density_air)\n";
     code_string += "  ! Compute reaction rates\n";
     code_string += "\n";
-    code_string += "  real(r8) :: reaction_rates("+reactions.length+")\n";
+    code_string += "  real(r8) :: reaction_rates(number_of_reactions)\n";
     code_string += "  real(r8), intent(in) :: rate_constant(:)\n";
     code_string += "  real(r8), intent(in) :: number_density(:)\n";
     code_string += "  real(r8), intent(in) :: number_density_air\n";
@@ -1293,13 +1302,13 @@ function toCode(req, res, next) {
   }
 
   // Generate code for an array of reaction names
-  reactions.rateNamesToCode = function(indexOffset=0) {
+  allReactions.rateNamesToCode = function(indexOffset=0) {
 
     let code_string = "\n"
     code_string += "function reaction_names()\n";
     code_string += "  ! Reaction names\n";
     code_string += "\n";
-    code_string += "  character(len=128) :: reaction_names("+reactions.length+")\n";
+    code_string += "  character(len=128) :: reaction_names(number_of_reactions)\n";
     code_string += "\n";
 
     this.forEach(function(reaction) {
@@ -1328,7 +1337,7 @@ function toCode(req, res, next) {
   module += "            dforce_dy, kinetics_init, kinetics_final\n";
   module += "\n";
   module += "  ! Total number of reactions\n";
-  module += "  integer, parameter, public :: number_of_reactions = "+reactions.length+"\n";
+  module += "  integer, parameter, public :: number_of_reactions = "+allReactions.length+"\n";
   module += "\n";
   module += "  contains\n";
   module += init_jac.toCode(indexOffset);
@@ -1336,8 +1345,8 @@ function toCode(req, res, next) {
   module += kinetics_final.toCode(indexOffset);
   module += init_jac.factored_alpha_minus_jac(indexOffset);
   module += force.toCode(indexOffset);
-  module += reactions.calcRatesToCode(indexOffset);
-  module += reactions.rateNamesToCode(indexOffset);
+  module += allReactions.calcRatesToCode(indexOffset);
+  module += allReactions.rateNamesToCode(indexOffset);
   module += init_jac.dforce_dy_times_vector_string(indexOffset);
   module += "\nend module kinetics_utilities\n";
 
