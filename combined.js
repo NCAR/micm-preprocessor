@@ -22,7 +22,6 @@ app.use(helmet.expectCt({
 app.use(helmet.frameguard({ action: 'deny' }))
 app.disable('x-powered-by')
 app.use(helmet.ieNoOpen())
-app.use(helmet.noCache())
 app.use(helmet.noSniff())
 app.use(helmet.permittedCrossDomainPolicies())
 app.use(helmet.xssFilter())
