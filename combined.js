@@ -543,7 +543,7 @@ function constructJacobian(req, res, next) {
   rate_constant_module += "  contains\n\n";
   rate_constant_module += j_map.toCode(1);
   rate_constant_module += k_collection.toCode(1);
-  rate_constant_module += special_k_collection.toCode();
+  // rate_constant_module += special_k_collection.toCode();
   rate_constant_module += "\nend module rate_constants_utility\n";
 
 
