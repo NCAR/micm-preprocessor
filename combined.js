@@ -45,6 +45,7 @@ function generateChecksum(str, algorithm, encoding) {
 }
 */
 
+
 // Collect all molecule names and assign an associative array
 // to index them
 const moleculeIndexer = function(molecules){
@@ -56,7 +57,7 @@ const moleculeIndexer = function(molecules){
   }
   this.numberOfMolecules = i
   this.print = function(){
-    console.log(this.moleculeAssociation);
+    //console.log(this.moleculeAssociation);
   }
   this.getMoleculeIndex = function() {return (this.moleculeAssociation);}
 }
@@ -117,8 +118,11 @@ const k_collector = function() {
       
       rate_constant_string += "    !"+ this.mapping[i].label +"\n";
       rate_constant_string += "    !"+ this.mapping[i].reaction_string +"\n";
-      for (const [key, value] of Object.entries(this.mapping[i].parameters)) {
-        rate_constant_string += "    "+this.mapping[i].reaction_class+"_parameters%"+key+" = "+value+"\n";
+      //for (const [key, value] of Object.entries(this.mapping[i].parameters)) {
+      for (var key in this.mapping[i].parameters) {
+        if (this.mapping[i].parameters.hasOwnProperty(key)){
+           rate_constant_string += "    "+this.mapping[i].reaction_class+"_parameters%"+key+" = "+this.mapping[i].parameters.hasOwnProperty(key)+"\n";
+        }
       }
 
       rate_constant_string += "    k_rate_constants("+k_index+") = "+this.mapping[i].rate_call+" \n\n";
@@ -165,8 +169,8 @@ const j_rate_map_collection = function(){
       codeString += "    j_rate_const("+j_index+") = tuv_rates("+(i+1)+") \n\n"
     }
     codeString  += "end subroutine p_rate_mapping \n\n";
-    console.log("photodecompLabels \n");
-    console.log(this.jLabel);
+    //console.log("photodecompLabels \n");
+    //console.log(this.jLabel);
     return codeString;
   }
 }
@@ -252,9 +256,9 @@ const labelor = function() {
   }
 
   this.printCollection = function() {
-    console.log('Number of raw Labels: '+collection.length);
-    console.log('Number of times each rawLabel appears');
-    console.dir(this.collection);
+    //console.log('Number of raw Labels: '+collection.length);
+    //console.log('Number of times each rawLabel appears');
+    //console.dir(this.collection);
   }
 
   this.getCollection = function(){
@@ -395,37 +399,37 @@ const forceCollector = function(molecules){
 
   this.printForce = function(){
     force.forEach( function(f){
-       console.log(f.constituent);
-       console.log(f.tendency);
+       //console.log(f.constituent);
+       //console.log(f.tendency);
     });
   }
 
   this.printForcing = function(){
     for(let i = 0; i < molecules.length; i++){
       if(force[i].tendency.length > 0) {
-        console.log('forcing of molecule '+molecules[i].moleculename)
+        //console.log('forcing of molecule '+molecules[i].moleculename)
         for( let j = 0; j < force[i].tendency.length; j++){
-          console.log(force[i].tendency[j])
+          //console.log(force[i].tendency[j])
         }
       }
     }
   }
 
   this.printLogicalJacobian = function(){
-    console.log(' ---- Logical Jacobian ---- ');
+    //console.log(' ---- Logical Jacobian ---- ');
     for(let i = 0; i < force.length; i++){
-      console.log(molecules[i].moleculename);
-      console.log(logicalJacobian[i]);
+      //console.log(molecules[i].moleculename);
+      //console.log(logicalJacobian[i]);
     }
   }
 
   this.printJacobian = function(){
-    console.log(' ---- Jacobian ---- ');
+    //console.log(' ---- Jacobian ---- ');
     for(let i = 0; i < molecules.length; i++){
       for(let j = 0; j < molecules.length; j++){
         let jacstring = "";
-        console.log(molecules[i].moleculename + ',' +molecules[j].moleculename) 
-        console.dir(jacobian[i][j])
+        //console.log(molecules[i].moleculename + ',' +molecules[j].moleculename) 
+        //console.dir(jacobian[i][j])
       }
     }
   }
@@ -673,7 +677,7 @@ function logicalFactorize() {
       for (let j = 0; j < matrix.length ; j++){
         string += String("                    "+JSON.stringify(matrix[i][j])).slice(-15);
       }
-      console.log(string);
+      //console.log(string);
     }
   }
   
@@ -1385,7 +1389,7 @@ function toCode(req, res, next) {
 
 var sequence =[constructJacobian, constructSparseLUFactor, toCode];
 app.post('/constructJacobian', sequence, function(req, res, next) {
-  console.log(res.locals);
+  //console.log(res.locals);
   res.json({
     "kinetics_utilities_module":res.locals.kinetics_utilities_module,
     "rate_constants_utility_module":res.locals.rate_constants_utility_module,
