@@ -121,7 +121,7 @@ const k_collector = function() {
       //for (const [key, value] of Object.entries(this.mapping[i].parameters)) {
       for (var key in this.mapping[i].parameters) {
         if (this.mapping[i].parameters.hasOwnProperty(key)){
-           rate_constant_string += "    "+this.mapping[i].reaction_class+"_parameters%"+key+" = "+this.mapping[i].parameters.hasOwnProperty(key)+"\n";
+           rate_constant_string += "    "+this.mapping[i].reaction_class+"_parameters%"+key+" = "+this.mapping[i].parameters[key]+"\n";
         }
       }
 
