@@ -504,10 +504,10 @@ function constructJacobian(req, res, next) {
     }
   );
 
-  content.mechanism.custom_rates.forEach(function(rate) {
-    special_k_collection.add(rate.code);
-    }
-  );
+  //content.mechanism.custom_rates.forEach(function(rate) {
+    //special_k_collection.add(rate.code);
+    //}
+  //);
 
   // Compute tendency of molecules due to each reaction
   reactions.forEach(function(reaction){
