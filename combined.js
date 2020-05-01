@@ -70,13 +70,15 @@ const k_collector = function() {
     this.mapping.push({'index':index, 'rate_call':reaction.rate_call, 'reaction_class':reaction.rate_constant.reaction_class, 'parameters':reaction.rate_constant.parameters ,'label':reaction.label, 'reaction_string':reaction.reactionString});
   }
   this.toCode = function(indexOffset){
-    let codeString  = "subroutine k_rate_constant(k_rate_constants, number_density_air, temperature, pressure, sad, aerosol_diameter, h2ovmr, o2vmr)\n"
+    let codeString  = "subroutine k_rate_constant(k_rate_constants, number_density_air__num_m3, temperature, pressure, sad, &\n"
+    codeString += "                           aerosol_diameter, H2O_number_density__num_m3, O2_number_density__num_m3)\n"
     codeString += "    real(KIND=r8),           intent(in)  :: temperature\n"
     codeString += "    real(KIND=r8),           intent(in)  :: pressure\n"
     codeString += "    real(KIND=r8),           intent(in)  :: sad(4)  ! aerosol surface area density \n"
     codeString += "    real(KIND=r8),           intent(in)  :: aerosol_diameter(4) ! aerosol diameter \n"
-    codeString += "    real(KIND=r8),           intent(in)  :: number_density_air ! P/kT molecules/cm3 \n"
-    codeString += "    real(KIND=r8),           intent(in)  :: h2ovmr, o2vmr \n"
+    codeString += "    real(KIND=r8),           intent(in)  :: number_density_air__num_m3 ! P/kT molecules/m3 \n"
+    codeString += "    real(KIND=r8),           intent(in)  :: H2O_number_density__num_m3 \n"
+    codeString += "    real(KIND=r8),           intent(in)  :: O2_number_density__num_m3 \n"
     codeString += "    real(KIND=r8),           intent(out) :: k_rate_constants(:) ! rate constant for the each reaction\n"
 
     codeString += "\n"
@@ -102,11 +104,11 @@ const k_collector = function() {
     codeString += "\n"
     codeString += "    environmental_state%temperature = temperature \n"
     codeString += "    environmental_state%pressure = pressure \n"
-    codeString += "    environmental_state%number_density_air = number_density_air \n"
     codeString += "    environmental_state%aerosol_surface_area_density(:) = sad(:) \n"
     codeString += "    environmental_state%aerosol_diameter(:) = aerosol_diameter(:) \n\n"
-    codeString += "    environmental_state%h2ovmr = h2ovmr \n\n"
-    codeString += "    environmental_state%o2_number_density = o2vmr*number_density_air \n\n"
+    codeString += "    environmental_state%number_density_air__num_m3 = number_density_air__num_m3 \n\n"
+    codeString += "    environmental_state%H2O_number_density__num_m3 = H2O_number_density__num_m3 \n\n"
+    codeString += "    environmental_state%O2_number_density__num_m3 = O2_number_density__num_m3 \n\n"
 
     for(let i=0; i< this.mapping.length; i++){
 
@@ -1108,58 +1110,6 @@ function toCode(req, res, next) {
   // find index for molecules, as reordered by pivot
   var moleculeIndex =reorderedIndex(reorderedMolecules);
 
-  // clone molecules
-  let kinetics_init = JSON.parse(JSON.stringify(reorderedMolecules));
-  kinetics_init.toCode = function(indexOffset=0){
-    let init_kinetics_string ="\nsubroutine kinetics_init(";
-    //init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
-    init_kinetics_string += "vmr";
-    init_kinetics_string += ", number_density, number_density_air";
-    init_kinetics_string += ")\n";
-    init_kinetics_string += "\n real(r8), intent(in) :: ";
-    //init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
-    init_kinetics_string += "vmr(:)";
-    init_kinetics_string += "\n real(r8), intent(out):: number_density("+reorderedMolecules.length+")";
-    init_kinetics_string += "\n real(r8), intent(in) :: number_density_air";
-    init_kinetics_string += "\n\n";
-    // for every molecule in the reordered array, convert vmr to number density
-    let initStringArray = reorderedMolecules.map(
-        (elem,index) =>{
-          return "number_density("+(elem.postPivotIndex+indexOffset)+") = vmr("+(index + indexOffset)+") * number_density_air" + " ! "+elem.moleculename;
-        }
-      );
-    init_kinetics_string += "\n " + initStringArray.join("\n ");
-    init_kinetics_string += "\n\n"+"end subroutine kinetics_init\n\n";
-    return init_kinetics_string;
-  }
-
-  
-  //clone molecules
-  let kinetics_final = JSON.parse(JSON.stringify(reorderedMolecules));
-  kinetics_final.toCode = function(indexOffset=0){
-    let final_kinetics_string ="\nsubroutine kinetics_final(";
-    //final_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
-    final_kinetics_string += "vmr";
-    final_kinetics_string += ", number_density, number_density_air";
-    final_kinetics_string += ")\n";
-    final_kinetics_string += "\n real(r8), intent(out) :: ";
-    //final_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
-    final_kinetics_string += "vmr(:)";
-    final_kinetics_string += "\n real(r8), intent(in) :: number_density("+reorderedMolecules.length+")";
-    final_kinetics_string += "\n real(r8), intent(in) :: number_density_air";
-    final_kinetics_string += "\n\n";
-    // for every molecule in the reordered array, convert vmr to number density
-    let initStringArray = reorderedMolecules.map(
-        (elem,index) =>{
-          return "vmr("+(index + indexOffset)+") = number_density("+(elem.postPivotIndex + indexOffset)+") / number_density_air" + " ! "+elem.moleculename;
-        }
-      );
-    final_kinetics_string += "\n " + initStringArray.join("\n ");
-    final_kinetics_string += "\n\n"+"end subroutine kinetics_final\n\n";
-    return final_kinetics_string;
-  }
-
-
 
   // code to initialize jacobian
   init_jac.toCode = function(indexOffset=0){
@@ -1337,15 +1287,13 @@ function toCode(req, res, next) {
   module += "  implicit none\n\n";
   module += "  private\n";
   module += "  public :: dforce_dy_times_vector, factored_alpha_minus_jac, p_force, reaction_rates, reaction_names, &\n"
-  module += "            dforce_dy, kinetics_init, kinetics_final\n";
+  module += "            dforce_dy\n";
   module += "\n";
   module += "  ! Total number of reactions\n";
   module += "  integer, parameter, public :: number_of_reactions = "+allReactions.length+"\n";
   module += "\n";
   module += "  contains\n";
   module += init_jac.toCode(indexOffset);
-  module += kinetics_init.toCode(indexOffset);
-  module += kinetics_final.toCode(indexOffset);
   module += init_jac.factored_alpha_minus_jac(indexOffset);
   module += force.toCode(indexOffset);
   module += allReactions.calcRatesToCode(indexOffset);
@@ -1355,16 +1303,12 @@ function toCode(req, res, next) {
 
 
   let init_jac_fortran = init_jac.toCode(indexOffset);
-  let init_kinetics_fortran = kinetics_init.toCode(indexOffset);
-  let final_kinetics_fortran = kinetics_final.toCode(indexOffset);
   let factored_alpha_minus_jac = init_jac.factored_alpha_minus_jac(indexOffset);
   let force_fortran = force.toCode(indexOffset);
   let dforce_dy_times_vector_string = init_jac.dforce_dy_times_vector_string(indexOffset);
 
   res.locals.preprocessorVersion = revision; 
   res.locals.init_jac_code_string = init_jac_fortran;
-  res.locals.init_kinetics = init_kinetics_fortran;
-  res.locals.final_kinetics = final_kinetics_fortran;
   res.locals.factored_alpha_minus_jac = factored_alpha_minus_jac;
   res.locals.force = force_fortran;
   res.locals.dforce_dy_times_vector = dforce_dy_times_vector_string; 
