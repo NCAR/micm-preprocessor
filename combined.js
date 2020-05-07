@@ -1343,9 +1343,18 @@ app.post('/constructJacobian', sequence, function(req, res, next) {
   });
 });
 
+var serverError = function(err){
+  console.log("Server produced error")
+  console.log("Most common cause is that this port is already in use")
+  console.log("The reason the port is typically in use is that someone is already running this server")
+  console.log("Code " + err.code)
+  console.log("Syscall " +err.syscall)
+  console.log("Port " +err.port)
+}
+
 
 http.listen(3000, function(){
     var addr = http.address();
     console.log('app listening on ' + addr.address + ':' + addr.port);
-});
+}).on('error', serverError);
 
