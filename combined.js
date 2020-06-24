@@ -154,7 +154,7 @@ const j_rate_map_collection = function(){
   this.mapping = [];
   this.jLabel = []; // extract photolysis label and description at the same time
   this.add = function(photodecomp, index){
-    this.mapping.push({'tuv_id':photodecomp.tuv_id, 'index':index});
+    this.mapping.push({'tuv_id':photodecomp.tuv_id, 'scale_factor':photodecomp.tuv_coeff, 'index':index});
     this.jLabel.push({"simulationIndex":index,"photodecompositionDescription":photodecomp.reactionString});
   }
   this.toCode = function(indexOffset){
@@ -164,13 +164,10 @@ const j_rate_map_collection = function(){
     for(let i=0; i< this.mapping.length; i++){
       let j_index = indexOffset + this.mapping[i].index;
       let tuv_index = this.mapping[i].tuv_id;
-      //codeString += "    j_rate_const("+j_index+") = tuv_rates("+tuv_index+") \n"
-      codeString += "    ! "+this.jLabel[i].photodecompositionDescription +"\n"
-      codeString += "    j_rate_const("+j_index+") = tuv_rates("+(i+1)+") \n\n"
+      codeString += "    ! "+this.mapping[i].scale_factor+" * "+ this.jLabel[i].photodecompositionDescription +"\n"
+      codeString += "    j_rate_const("+j_index+") = "+this.mapping[i].scale_factor+" * tuv_rates("+(i+1)+") \n\n"
     }
     codeString  += "end subroutine p_rate_mapping \n\n";
-    //console.log("photodecompLabels \n");
-    //console.log(this.jLabel);
     return codeString;
   }
 }
