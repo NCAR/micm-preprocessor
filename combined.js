@@ -1385,7 +1385,7 @@ function toCode(req, res, next) {
 }
 
 var sequence =[constructJacobian, constructSparseLUFactor, toCode];
-app.post('/constructJacobian', sequence, function(req, res, next) {
+app.post('/constructJacobian/v0.1/', sequence, function(req, res, next) {
   //console.log(res.locals);
   res.json({
     "kinetics_utilities_module":res.locals.kinetics_utilities_module,
