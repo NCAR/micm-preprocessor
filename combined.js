@@ -1385,7 +1385,19 @@ function toCode(req, res, next) {
 }
 
 var sequence =[constructJacobian, constructSparseLUFactor, toCode];
-app.post('/constructJacobian', sequence, function(req, res, next) {
+app.post('/constructJacobian/v0.1/', sequence, function(req, res, next) {
+  //console.log(res.locals);
+  res.json({
+    "kinetics_utilities_module":res.locals.kinetics_utilities_module,
+    "rate_constants_utility_module":res.locals.rate_constants_utility_module,
+    "factor_solve_utilities_module":res.locals.factor_solve_utilities_module,
+    "j_labels":res.locals.j_labels,
+    "k_labels":res.locals.k_labels
+  });
+});
+
+// This can go away once unversioned mechanisms are removed
+app.post('/constructJacobian/', sequence, function(req, res, next) {
   //console.log(res.locals);
   res.json({
     "kinetics_utilities_module":res.locals.kinetics_utilities_module,

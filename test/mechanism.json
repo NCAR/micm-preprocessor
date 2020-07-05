@@ -21,14 +21,16 @@
         "formula": "Ar",
         "transport": "transported",
         "solve": "implicit",
-        "henrys_law_type": "0",
+        "henrys_law": {
+          "henrys_law_type": "0",
+          "kh_298": "0",
+          "dh_r": "0",
+          "k1_298": "0",
+          "dh1_r": "0",
+          "k2_298": "0",
+          "dh2_r": "0"
+        },
         "molecular_weight": "39.948",
-        "kh_298": "0",
-        "dh_r": "0",
-        "k1_298": "0",
-        "dh1_r": "0",
-        "k2_298": "0",
-        "dh2_r": "0",
         "standard_name": "Ar_std"
       },
       {
@@ -36,14 +38,16 @@
         "formula": null,
         "transport": "transported",
         "solve": "explicit",
-        "henrys_law_type": "1",
+        "henrys_law": {
+          "henrys_law_type": "1",
+          "kh_298": "3.44E-02",
+          "dh_r": "2715",
+          "k1_298": "4.3e-07",
+          "dh1_r": "-1000",
+          "k2_298": "4.68e-11",
+          "dh2_r": "-1760"
+        },
         "molecular_weight": "44.0098",
-        "kh_298": "3.44E-02",
-        "dh_r": "2715",
-        "k1_298": "4.3e-07",
-        "dh1_r": "-1000",
-        "k2_298": "4.68e-11",
-        "dh2_r": "-1760",
         "standard_name": "CO2_std"
       },
       {
@@ -51,14 +55,16 @@
         "formula": null,
         "transport": "transported",
         "solve": "implicit",
-        "henrys_law_type": "1",
+        "henrys_law": {
+          "henrys_law_type": "1",
+          "kh_298": "1.0e-14",
+          "dh_r": "-6716",
+          "k1_298": "0",
+          "dh1_r": "0",
+          "k2_298": "0",
+          "dh2_r": "0"
+        },
         "molecular_weight": "18.0142",
-        "kh_298": "1.0e-14",
-        "dh_r": "-6716",
-        "k1_298": "0",
-        "dh1_r": "0",
-        "k2_298": "0",
-        "dh2_r": "0",
         "standard_name": "H2O_std"
       },
       {
@@ -66,14 +72,16 @@
         "formula": "",
         "transport": "transported",
         "solve": "implicit",
-        "henrys_law_type": "0",
-        "molecular_weight": "0",
-        "kh_298": "0",
-        "dh_r": "0",
-        "k1_298": "0",
-        "dh1_r": "0",
-        "k2_298": "0",
-        "dh2_r": "0",
+        "henrys_law": {
+          "henrys_law_type": "0",
+          "kh_298": "0",
+          "dh_r": "0",
+          "k1_298": "0",
+          "dh1_r": "0",
+          "k2_298": "0",
+          "dh2_r": "0"
+        },
+        "molecular_weight": "28.01348",
         "standard_name": "N2_std"
       },
       {
@@ -81,14 +89,16 @@
         "formula": null,
         "transport": "transported",
         "solve": "implicit",
-        "henrys_law_type": "0",
+        "henrys_law": {
+          "henrys_law_type": "0",
+          "kh_298": "0",
+          "dh_r": "0",
+          "k1_298": "0",
+          "dh1_r": "0",
+          "k2_298": "0",
+          "dh2_r": "0"
+        },
         "molecular_weight": "15.9994",
-        "kh_298": "0",
-        "dh_r": "0",
-        "k1_298": "0",
-        "dh1_r": "0",
-        "k2_298": "0",
-        "dh2_r": "0",
         "standard_name": "O_std"
       },
       {
@@ -96,14 +106,16 @@
         "formula": "O",
         "transport": "not-transported",
         "solve": "implicit",
-        "henrys_law_type": "0",
+        "henrys_law": {
+          "henrys_law_type": "0",
+          "kh_298": "0",
+          "dh_r": "0",
+          "k1_298": "0",
+          "dh1_r": "0",
+          "k2_298": "0",
+          "dh2_r": "0"
+        },
         "molecular_weight": "15.9994",
-        "kh_298": "0",
-        "dh_r": "0",
-        "k1_298": "0",
-        "dh1_r": "0",
-        "k2_298": "0",
-        "dh2_r": "0",
         "standard_name": "O1D_std"
       },
       {
@@ -111,14 +123,16 @@
         "formula": "",
         "transport": "transported",
         "solve": "implicit",
-        "henrys_law_type": "1",
-        "molecular_weight": "0",
-        "kh_298": "1.3E-03",
-        "dh_r": "0",
-        "k1_298": "0",
-        "dh1_r": "0",
-        "k2_298": "0",
-        "dh2_r": "0",
+        "henrys_law": {
+          "henrys_law_type": "1",
+          "kh_298": "1.3E-03",
+          "dh_r": "0",
+          "k1_298": "0",
+          "dh1_r": "0",
+          "k2_298": "0",
+          "dh2_r": "0"
+        },
+        "molecular_weight": "31.9988",
         "standard_name": "O2_std"
       },
       {
@@ -126,14 +140,16 @@
         "formula": null,
         "transport": "transported",
         "solve": "implicit",
-        "henrys_law_type": "1",
+        "henrys_law": {
+          "henrys_law_type": "1",
+          "kh_298": "1.03E-02",
+          "dh_r": "2830",
+          "k1_298": "0",
+          "dh1_r": "0",
+          "k2_298": "0",
+          "dh2_r": "0"
+        },
         "molecular_weight": "47.9982",
-        "kh_298": "1.03E-02",
-        "dh_r": "2830",
-        "k1_298": "0",
-        "dh1_r": "0",
-        "k2_298": "0",
-        "dh2_r": "0",
         "standard_name": "O3_std"
       }
     ],
@@ -147,7 +163,6 @@
         "tuv_id": "2",
         "tuv_coeff": "1.0",
         "tuv_reaction": "O2 + hv -> O(3P) + O(3P)",
-        "reactant_count": 1,
         "troe": false,
         "products": [
           {
@@ -165,7 +180,6 @@
         "tuv_id": "5",
         "tuv_coeff": "1.0",
         "tuv_reaction": "O3 -> O2 + O(1D)",
-        "reactant_count": 1,
         "troe": false,
         "products": [
           {
@@ -187,7 +201,6 @@
         "tuv_id": "6",
         "tuv_coeff": "1.0",
         "tuv_reaction": "O3 -> O2 + O(3P)",
-        "reactant_count": 1,
         "troe": false,
         "products": [
           {
@@ -219,7 +232,6 @@
           },
           "reaction_class": "Arrhenius"
         },
-        "reactant_count": 2,
         "troe": false,
         "products": [
           {
@@ -249,7 +261,6 @@
           },
           "reaction_class": "Arrhenius"
         },
-        "reactant_count": 2,
         "troe": false,
         "products": [
           {
@@ -279,7 +290,6 @@
           },
           "reaction_class": "Arrhenius"
         },
-        "reactant_count": 2,
         "troe": false,
         "products": [
           {
@@ -303,7 +313,6 @@
           },
           "reaction_class": "Troe_low_pressure"
         },
-        "reactant_count": 3,
         "troe": true,
         "products": [
           {
@@ -311,12 +320,6 @@
             "molecule": "O3"
           }
         ]
-      }
-    ],
-    "custom_rates": [
-      {
-        "name": "usr_O_O2( temp )",
-        "code": "REAL(KIND=r8) FUNCTION usr_O_O2( temp )\n! for cesm-consistent reaction labels\n! O+O2+M -> O3+M\n\n    REAL(KIND=r8), INTENT(IN) :: temp\n\n    usr_O_O2 = 6.00e-34_r8*(temp/300._r8)**(-2.4_r8)\n\nEND FUNCTION usr_O_O2"
       }
     ]
   }
