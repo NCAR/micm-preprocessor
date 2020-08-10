@@ -141,28 +141,27 @@ const special_k_collector = function() {  // no relation to the cereal
    }
 }
 
-const j_rate_map_collection = function(){
-  this.mapping = [];
-  this.jLabel = []; // extract photolysis label and description at the same time
-  this.add = function(photodecomp, index){
-    this.mapping.push({'tuv_id':photodecomp.tuv_id, 'scale_factor':photodecomp.tuv_coeff, 'index':index});
-    this.jLabel.push({"simulationIndex":index,"photodecompositionDescription":photodecomp.reactionString});
+const set_photolysis_rate_constants = function() {
+  this.mapping = []; // mapping between photolysis rate constant array and comprehensive rate constant array
+  this.photolysisLabel = []; // description of photolysis reaction
+  this.add = function(photolysisReaction, photolysis_index, reaction_index){
+    this.mapping.push({'photolysis_index':photolysis_index, 'reaction_index':reaction_index});
+    this.photolysisLabel.push({'reaction_index':reaction_index, 'description':photolysisReaction.reactionString});
   }
   this.toCode = function(indexOffset){
-    let codeString  = "subroutine p_rate_mapping(tuv_rates, j_rate_const)\n"
-    codeString += "    real(KIND=r8),           intent(in)  :: tuv_rates(:) ! /sec \n"
-    codeString += "    real(KIND=r8),           intent(out) :: j_rate_const(:) ! /sec \n"
-    for(let i=0; i< this.mapping.length; i++){
-      let j_index = indexOffset + this.mapping[i].index;
-      let tuv_index = this.mapping[i].tuv_id;
-      codeString += "    ! "+this.mapping[i].scale_factor+" * "+ this.jLabel[i].photodecompositionDescription +"\n"
-      codeString += "    j_rate_const("+j_index+") = "+this.mapping[i].scale_factor+" * tuv_rates("+(i+1)+") \n\n"
+    let codeString = "subroutine set_photolysis_rate_constants(rate_constants, photolysis_rate_constants)\n"
+    codeString += "    real(KIND=r8), intent(out) :: rate_constants(:) ! s-1\n"
+    codeString += "    real(KIND=r8), intent(in)  :: photolysis_rate_constants(:) ! s-1\n\n"
+    for(let i=0; i<this.mapping.length; i++){
+      let reaction_index = indexOffset + this.mapping[i].reaction_index;
+      let photo_index    = indexOffset + this.mapping[i].photolysis_index;
+      codeString += "    ! " + this.photolysisLabel[i].description + "\n"
+      codeString += "    rate_constants(" + reaction_index + ") = photolysis_rate_constants(" + photo_index + ")\n\n"
     }
-    codeString  += "end subroutine p_rate_mapping \n\n";
+    codeString += "end subroutine set_photolysis_rate_constants\n\n"
     return codeString;
   }
 }
-
 
 // Data type to be converted to code
 // Code will be netTendency*rateConstant(idxReaction)*product_of_vmr_array*M
@@ -470,7 +469,7 @@ function constructJacobian(req, res, next) {
   //   forcing, jacobian, and logicalJacobian
   var forceCollection = new forceCollector(molecules);
 
-  var j_map = new j_rate_map_collection();
+  var set_photo = new set_photolysis_rate_constants();
   var k_collection = new k_collector();
   var special_k_collection = new special_k_collector();
  
@@ -488,7 +487,7 @@ function constructJacobian(req, res, next) {
 
   photoDecomps.forEach(function(reaction, index){
     label.add(reaction, index, "photoDecomp");
-    j_map.add(reaction, index);
+    set_photo.add(reaction, index, reactions.length + index);
     }
   );
 
@@ -531,9 +530,9 @@ function constructJacobian(req, res, next) {
   rate_constant_module += "! "+tag_info.tagDescription+"\n";
   rate_constant_module += "! "+tag_info.tagStats+"\n\n";
   rate_constant_module += "  implicit none\n\n";
-  rate_constant_module += "  public :: p_rate_mapping, k_rate_constant \n\n";
+  rate_constant_module += "  public :: set_photolysis_rate_constants, k_rate_constant \n\n";
   rate_constant_module += "  contains\n\n";
-  rate_constant_module += j_map.toCode(1);
+  rate_constant_module += set_photo.toCode(1);
   rate_constant_module += k_collection.toCode(1);
   // rate_constant_module += special_k_collection.toCode();
   rate_constant_module += "\nend module rate_constants_utility\n";
@@ -550,7 +549,7 @@ function constructJacobian(req, res, next) {
   res.locals.logicalJacobian = logicalJacobian; 
   res.locals.jacobian = jacobian;
   res.locals.moleculeIndex = mIndex;
-  res.locals.j_labels = j_map.jLabel;
+  res.locals.j_labels = set_photo.photolysisLabel;
   res.locals.k_labels = k_collection.kLabel;
   res.locals.rate_constants_utility_module = rate_constant_module;
   res.locals.force = force;
@@ -1261,6 +1260,31 @@ function toCode(req, res, next) {
 
   }
 
+  // Generate code for an array of photolysis reaction names
+  allReactions.photolysisNamesToCode = function(photo_start_index, indexOffset=0) {
+
+    let code_string = "\n"
+    code_string += "function photolysis_names()\n"
+    code_string += "  ! Photolysis reaction names\n"
+    code_string += "\n"
+    code_string += "  character(len=28) :: photolysis_names(number_of_photolysis_reactions)\n"
+    code_string += "\n"
+
+    this.forEach(function(reaction) {
+      let photo_id = reaction.idxReaction - photo_start_index + 1
+      if(photo_id > 0) {
+        code_string += "  photolysis_names("+photo_id+") = '"+reaction.label+"'\n"
+      }
+    });
+
+    code_string += "\n"
+    code_string += "end function photolysis_names\n"
+    code_string += "\n"
+
+    return code_string;
+  }
+
+
   // Generate code for an array of species names
   reorderedMolecules.speciesNamesToCode = function(indexOffset=0) {
 
@@ -1294,11 +1318,13 @@ function toCode(req, res, next) {
   module += "  implicit none\n\n";
   module += "  private\n";
   module += "  public :: dforce_dy_times_vector, factored_alpha_minus_jac, p_force, reaction_rates, reaction_names, &\n"
-  module += "            dforce_dy, species_names\n";
+  module += "            photolysis_names, dforce_dy, species_names\n";
   module += "\n";
   module += "  ! Total number of reactions\n";
-  module += "  integer, parameter, public :: number_of_reactions = "+allReactions.length+"\n";
-  module += "  integer, parameter, public :: number_of_species   = "+reorderedMolecules.length+"\n"
+  module += "  integer, parameter, public  :: number_of_reactions                = "+allReactions.length+"\n";
+  module += "  integer, parameter, public  :: number_of_photolysis_reactions     = "+photoDecomps.length+"\n";
+  module += "  integer, parameter, private :: photolysis_starting_reaction_index = "+ (+reactions.length + +1)+"\n";
+  module += "  integer, parameter, public  :: number_of_species                  = "+reorderedMolecules.length+"\n"
   module += "\n";
   module += "  contains\n";
   module += init_jac.toCode(indexOffset);
@@ -1306,6 +1332,7 @@ function toCode(req, res, next) {
   module += force.toCode(indexOffset);
   module += allReactions.calcRatesToCode(indexOffset);
   module += allReactions.rateNamesToCode(indexOffset);
+  module += allReactions.photolysisNamesToCode(reactions.length, indexOffset);
   module += reorderedMolecules.speciesNamesToCode(indexOffset);
   module += init_jac.dforce_dy_times_vector_string(indexOffset);
   module += "\nend module kinetics_utilities\n";
