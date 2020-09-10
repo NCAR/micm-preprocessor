@@ -1,3 +1,6 @@
+// Copyright (C) 2020 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+
 'use strict'
 
 const app = require('express')();
@@ -28,8 +31,11 @@ app.use(helmet.xssFilter())
 
 
 // get git version hash of this git checkout
-const revision = require('child_process').execSync('git rev-parse HEAD').toString().trim()
-const git_remote = require('child_process').execSync('git config --get remote.origin.url').toString().trim()
+//const revision = require('child_process').execSync('git rev-parse HEAD').toString().trim()
+//const git_remote = require('child_process').execSync('git config --get remote.origin.url').toString().trim()
+
+const revision = 'NA'
+const git_remote = 'NA'
 
 // Set forcing to zero for any net stoichiometric tendency smaller 
 //   (in absolute value) than this.
@@ -70,14 +76,9 @@ const k_collector = function() {
     this.mapping.push({'index':index, 'rate_call':reaction.rate_call, 'reaction_class':reaction.rate_constant.reaction_class, 'parameters':reaction.rate_constant.parameters ,'label':reaction.label, 'reaction_string':reaction.reactionString});
   }
   this.toCode = function(indexOffset){
-    let codeString  = "subroutine k_rate_constant(k_rate_constants, number_density_air, temperature, pressure, sad, aerosol_diameter, h2ovmr, o2vmr)\n"
-    codeString += "    real(KIND=r8),           intent(in)  :: temperature\n"
-    codeString += "    real(KIND=r8),           intent(in)  :: pressure\n"
-    codeString += "    real(KIND=r8),           intent(in)  :: sad(4)  ! aerosol surface area density \n"
-    codeString += "    real(KIND=r8),           intent(in)  :: aerosol_diameter(4) ! aerosol diameter \n"
-    codeString += "    real(KIND=r8),           intent(in)  :: number_density_air ! P/kT molecules/cm3 \n"
-    codeString += "    real(KIND=r8),           intent(in)  :: h2ovmr, o2vmr \n"
-    codeString += "    real(KIND=r8),           intent(out) :: k_rate_constants(:) ! rate constant for the each reaction\n"
+    let codeString  = "subroutine k_rate_constant(k_rate_constants, environmental_state)\n"
+    codeString += "    real(KIND=r8),         intent(out) :: k_rate_constants(:) ! rate constant for the each reaction\n"
+    codeString += "    type(environment_t), intent(in)  :: environmental_state\n"
 
     codeString += "\n"
     codeString += "    type( arrhenius_rate_param_type ) :: arrhenius_parameters \n"
@@ -97,16 +98,6 @@ const k_collector = function() {
     codeString += "    type( SO2_OH_rate_param_type ) :: SO2_OH_parameters \n"
 
     codeString += "\n"
-    codeString += "    type(environmental_state_type) :: environmental_state \n\n"
-
-    codeString += "\n"
-    codeString += "    environmental_state%temperature = temperature \n"
-    codeString += "    environmental_state%pressure = pressure \n"
-    codeString += "    environmental_state%number_density_air = number_density_air \n"
-    codeString += "    environmental_state%aerosol_surface_area_density(:) = sad(:) \n"
-    codeString += "    environmental_state%aerosol_diameter(:) = aerosol_diameter(:) \n\n"
-    codeString += "    environmental_state%h2ovmr = h2ovmr \n\n"
-    codeString += "    environmental_state%o2_number_density = o2vmr*number_density_air \n\n"
 
     for(let i=0; i< this.mapping.length; i++){
 
@@ -150,28 +141,27 @@ const special_k_collector = function() {  // no relation to the cereal
    }
 }
 
-const j_rate_map_collection = function(){
-  this.mapping = [];
-  this.jLabel = []; // extract photolysis label and description at the same time
-  this.add = function(photodecomp, index){
-    this.mapping.push({'tuv_id':photodecomp.tuv_id, 'scale_factor':photodecomp.tuv_coeff, 'index':index});
-    this.jLabel.push({"simulationIndex":index,"photodecompositionDescription":photodecomp.reactionString});
+const set_photolysis_rate_constants = function() {
+  this.mapping = []; // mapping between photolysis rate constant array and comprehensive rate constant array
+  this.photolysisLabel = []; // description of photolysis reaction
+  this.add = function(photolysisReaction, photolysis_index, reaction_index){
+    this.mapping.push({'photolysis_index':photolysis_index, 'reaction_index':reaction_index});
+    this.photolysisLabel.push({'reaction_index':reaction_index, 'description':photolysisReaction.reactionString});
   }
   this.toCode = function(indexOffset){
-    let codeString  = "subroutine p_rate_mapping(tuv_rates, j_rate_const)\n"
-    codeString += "    real(KIND=r8),           intent(in)  :: tuv_rates(:) ! /sec \n"
-    codeString += "    real(KIND=r8),           intent(out) :: j_rate_const(:) ! /sec \n"
-    for(let i=0; i< this.mapping.length; i++){
-      let j_index = indexOffset + this.mapping[i].index;
-      let tuv_index = this.mapping[i].tuv_id;
-      codeString += "    ! "+this.mapping[i].scale_factor+" * "+ this.jLabel[i].photodecompositionDescription +"\n"
-      codeString += "    j_rate_const("+j_index+") = "+this.mapping[i].scale_factor+" * tuv_rates("+(i+1)+") \n\n"
+    let codeString = "subroutine set_photolysis_rate_constants(rate_constants, photolysis_rate_constants)\n"
+    codeString += "    real(KIND=r8), intent(out) :: rate_constants(:) ! s-1\n"
+    codeString += "    real(KIND=r8), intent(in)  :: photolysis_rate_constants(:) ! s-1\n\n"
+    for(let i=0; i<this.mapping.length; i++){
+      let reaction_index = indexOffset + this.mapping[i].reaction_index;
+      let photo_index    = indexOffset + this.mapping[i].photolysis_index;
+      codeString += "    ! " + this.photolysisLabel[i].description + "\n"
+      codeString += "    rate_constants(" + reaction_index + ") = photolysis_rate_constants(" + photo_index + ")\n\n"
     }
-    codeString  += "end subroutine p_rate_mapping \n\n";
+    codeString += "end subroutine set_photolysis_rate_constants\n\n"
     return codeString;
   }
 }
-
 
 // Data type to be converted to code
 // Code will be netTendency*rateConstant(idxReaction)*product_of_vmr_array*M
@@ -479,7 +469,7 @@ function constructJacobian(req, res, next) {
   //   forcing, jacobian, and logicalJacobian
   var forceCollection = new forceCollector(molecules);
 
-  var j_map = new j_rate_map_collection();
+  var set_photo = new set_photolysis_rate_constants();
   var k_collection = new k_collector();
   var special_k_collection = new special_k_collector();
  
@@ -497,7 +487,7 @@ function constructJacobian(req, res, next) {
 
   photoDecomps.forEach(function(reaction, index){
     label.add(reaction, index, "photoDecomp");
-    j_map.add(reaction, index);
+    set_photo.add(reaction, index, reactions.length + index);
     }
   );
 
@@ -531,18 +521,18 @@ function constructJacobian(req, res, next) {
   // Send result back to host
   //
 
-  let rate_constant_module = "module rate_constants_utility \n\n";
-  rate_constant_module += "use ccpp_kinds, only: r8 => kind_phys \n\n"
-  rate_constant_module += "use rate_constant_functions \n\n"
-  rate_constant_module += "use environmental_state_mod \n\n"
+  let rate_constant_module = "module rate_constants_utility\n\n";
+  rate_constant_module += "use musica_constants, only: r8 => musica_dk\n\n"
+  rate_constant_module += "use rate_constant_functions\n\n"
+  rate_constant_module += "use micm_environment, only : environment_t\n\n"
   rate_constant_module += "! This code was generated by Preprocessor revision "+revision+"\n"
   rate_constant_module += "! Preprocessor source "+git_remote+"\n\n"
   rate_constant_module += "! "+tag_info.tagDescription+"\n";
   rate_constant_module += "! "+tag_info.tagStats+"\n\n";
   rate_constant_module += "  implicit none\n\n";
-  rate_constant_module += "  public :: p_rate_mapping,  k_rate_constant \n\n";
+  rate_constant_module += "  public :: set_photolysis_rate_constants, k_rate_constant \n\n";
   rate_constant_module += "  contains\n\n";
-  rate_constant_module += j_map.toCode(1);
+  rate_constant_module += set_photo.toCode(1);
   rate_constant_module += k_collection.toCode(1);
   // rate_constant_module += special_k_collection.toCode();
   rate_constant_module += "\nend module rate_constants_utility\n";
@@ -559,7 +549,7 @@ function constructJacobian(req, res, next) {
   res.locals.logicalJacobian = logicalJacobian; 
   res.locals.jacobian = jacobian;
   res.locals.moleculeIndex = mIndex;
-  res.locals.j_labels = j_map.jLabel;
+  res.locals.j_labels = set_photo.photolysisLabel;
   res.locals.k_labels = k_collection.kLabel;
   res.locals.rate_constants_utility_module = rate_constant_module;
   res.locals.force = force;
@@ -962,7 +952,7 @@ function constructSparseLUFactor(req, res, next) {
 
   let indexOffset = 1; //convert to fortran
   let module = "module factor_solve_utilities\n\n";
-  module += "use ccpp_kinds, only: r8 => kind_phys \n\n"
+  module += "use musica_constants, only: r8 => musica_dk\n\n"
   module += "! This code was generated by Preprocessor revision "+revision+"\n"
   module += "! Preprocessor source "+git_remote+"\n\n"
   module += "! "+res.locals.tagDescription+"\n";
@@ -1104,59 +1094,6 @@ function toCode(req, res, next) {
 
   // find index for molecules, as reordered by pivot
   var moleculeIndex =reorderedIndex(reorderedMolecules);
-
-  // clone molecules
-  let kinetics_init = JSON.parse(JSON.stringify(reorderedMolecules));
-  kinetics_init.toCode = function(indexOffset=0){
-    let init_kinetics_string ="\nsubroutine kinetics_init(";
-    //init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
-    init_kinetics_string += "vmr";
-    init_kinetics_string += ", number_density, number_density_air";
-    init_kinetics_string += ")\n";
-    init_kinetics_string += "\n real(r8), intent(in) :: ";
-    //init_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
-    init_kinetics_string += "vmr(:)";
-    init_kinetics_string += "\n real(r8), intent(out):: number_density("+reorderedMolecules.length+")";
-    init_kinetics_string += "\n real(r8), intent(in) :: number_density_air";
-    init_kinetics_string += "\n\n";
-    // for every molecule in the reordered array, convert vmr to number density
-    let initStringArray = reorderedMolecules.map(
-        (elem,index) =>{
-          return "number_density("+(elem.postPivotIndex+indexOffset)+") = vmr("+(index + indexOffset)+") * number_density_air" + " ! "+elem.moleculename;
-        }
-      );
-    init_kinetics_string += "\n " + initStringArray.join("\n ");
-    init_kinetics_string += "\n\n"+"end subroutine kinetics_init\n\n";
-    return init_kinetics_string;
-  }
-
-  
-  //clone molecules
-  let kinetics_final = JSON.parse(JSON.stringify(reorderedMolecules));
-  kinetics_final.toCode = function(indexOffset=0){
-    let final_kinetics_string ="\nsubroutine kinetics_final(";
-    //final_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
-    final_kinetics_string += "vmr";
-    final_kinetics_string += ", number_density, number_density_air";
-    final_kinetics_string += ")\n";
-    final_kinetics_string += "\n real(r8), intent(out) :: ";
-    //final_kinetics_string += reorderedMolecules.map((elem) =>{return elem.moleculename;}).join(", ");
-    final_kinetics_string += "vmr(:)";
-    final_kinetics_string += "\n real(r8), intent(in) :: number_density("+reorderedMolecules.length+")";
-    final_kinetics_string += "\n real(r8), intent(in) :: number_density_air";
-    final_kinetics_string += "\n\n";
-    // for every molecule in the reordered array, convert vmr to number density
-    let initStringArray = reorderedMolecules.map(
-        (elem,index) =>{
-          return "vmr("+(index + indexOffset)+") = number_density("+(elem.postPivotIndex + indexOffset)+") / number_density_air" + " ! "+elem.moleculename;
-        }
-      );
-    final_kinetics_string += "\n " + initStringArray.join("\n ");
-    final_kinetics_string += "\n\n"+"end subroutine kinetics_final\n\n";
-    return final_kinetics_string;
-  }
-
-
 
   // code to initialize jacobian
   init_jac.toCode = function(indexOffset=0){
@@ -1323,45 +1260,91 @@ function toCode(req, res, next) {
 
   }
 
+  // Generate code for an array of photolysis reaction names
+  allReactions.photolysisNamesToCode = function(photo_start_index, indexOffset=0) {
+
+    let code_string = "\n"
+    code_string += "function photolysis_names()\n"
+    code_string += "  ! Photolysis reaction names\n"
+    code_string += "\n"
+    code_string += "  character(len=28) :: photolysis_names(number_of_photolysis_reactions)\n"
+    code_string += "\n"
+
+    this.forEach(function(reaction) {
+      let photo_id = reaction.idxReaction - photo_start_index + 1
+      if(photo_id > 0) {
+        code_string += "  photolysis_names("+photo_id+") = '"+reaction.label+"'\n"
+      }
+    });
+
+    code_string += "\n"
+    code_string += "end function photolysis_names\n"
+    code_string += "\n"
+
+    return code_string;
+  }
+
+
+  // Generate code for an array of species names
+  reorderedMolecules.speciesNamesToCode = function(indexOffset=0) {
+
+    let code_string = "\n";
+    code_string += "function species_names()\n";
+    code_string += "  ! Chemical species names\n";
+    code_string += "\n";
+    code_string += "  character(len=128) :: species_names(number_of_species)\n";
+    code_string += "\n";
+
+    this.forEach(function(species) {
+      code_string += "  species_names("+ (+moleculeIndex[species.moleculename] + +1) + ") = '"+species.moleculename+"'\n";
+    });
+
+    code_string += "\n";
+    code_string += "end function species_names\n";
+    code_string += "\n";
+
+    return code_string;
+
+  }
+
   let indexOffset = 1; //convert to fortran
   let module = "module kinetics_utilities\n";
-  module += "use ccpp_kinds, only: r8 => kind_phys\n\n";
+  module += "use musica_constants, only: r8 => musica_dk\n\n";
   module += "! This code was generated by Preprocessor revision "+revision+"\n"
   module += "! Preprocessor source "+git_remote+"\n\n"
   module += "! "+res.locals.tagDescription+"\n";
   module += "! "+res.locals.tagStats+"\n\n";
-  module += "  use factor_solve_utilities, only:  factor \n\n"
+  module += "  use factor_solve_utilities, only:  factor\n\n"
   module += "  implicit none\n\n";
   module += "  private\n";
   module += "  public :: dforce_dy_times_vector, factored_alpha_minus_jac, p_force, reaction_rates, reaction_names, &\n"
-  module += "            dforce_dy, kinetics_init, kinetics_final\n";
+  module += "            photolysis_names, dforce_dy, species_names\n";
   module += "\n";
   module += "  ! Total number of reactions\n";
-  module += "  integer, parameter, public :: number_of_reactions = "+allReactions.length+"\n";
+  module += "  integer, parameter, public  :: number_of_reactions                = "+allReactions.length+"\n";
+  module += "  integer, parameter, public  :: number_of_photolysis_reactions     = "+photoDecomps.length+"\n";
+  module += "  integer, parameter, private :: photolysis_starting_reaction_index = "+ (+reactions.length + +1)+"\n";
+  module += "  integer, parameter, public  :: number_of_species                  = "+reorderedMolecules.length+"\n"
   module += "\n";
   module += "  contains\n";
   module += init_jac.toCode(indexOffset);
-  module += kinetics_init.toCode(indexOffset);
-  module += kinetics_final.toCode(indexOffset);
   module += init_jac.factored_alpha_minus_jac(indexOffset);
   module += force.toCode(indexOffset);
   module += allReactions.calcRatesToCode(indexOffset);
   module += allReactions.rateNamesToCode(indexOffset);
+  module += allReactions.photolysisNamesToCode(reactions.length, indexOffset);
+  module += reorderedMolecules.speciesNamesToCode(indexOffset);
   module += init_jac.dforce_dy_times_vector_string(indexOffset);
   module += "\nend module kinetics_utilities\n";
 
 
   let init_jac_fortran = init_jac.toCode(indexOffset);
-  let init_kinetics_fortran = kinetics_init.toCode(indexOffset);
-  let final_kinetics_fortran = kinetics_final.toCode(indexOffset);
   let factored_alpha_minus_jac = init_jac.factored_alpha_minus_jac(indexOffset);
   let force_fortran = force.toCode(indexOffset);
   let dforce_dy_times_vector_string = init_jac.dforce_dy_times_vector_string(indexOffset);
 
   res.locals.preprocessorVersion = revision; 
   res.locals.init_jac_code_string = init_jac_fortran;
-  res.locals.init_kinetics = init_kinetics_fortran;
-  res.locals.final_kinetics = final_kinetics_fortran;
   res.locals.factored_alpha_minus_jac = factored_alpha_minus_jac;
   res.locals.force = force_fortran;
   res.locals.dforce_dy_times_vector = dforce_dy_times_vector_string; 
@@ -1373,8 +1356,6 @@ function toCode(req, res, next) {
   res.json({
     "preprocessorVersion": revision, 
     "init_jac_code_string":init_jac_fortran,
-    "init_kinetics":init_kinetics_fortran,
-    "final_kinetics":final_kinetics_fortran,
     "factored_alpha_minus_jac":factored_alpha_minus_jac,
     "force":force_fortran,
     "dforce_dy_times_vector":dforce_dy_times_vector_string, 

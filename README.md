@@ -1,5 +1,11 @@
-# MechanismToCode
+MechanismToCode
+===============
+
 Web service converting JSON representation of chemical mechanism into code to be used by a solver.
+
+[![License](https://img.shields.io/github/license/NCAR/MechanismToCode.svg)](https://github.com/NCAR/MechanismToCode/blob/master/LICENSE)
+
+Copyright (C) 2018-2020 National Center for Atmospheric Research
 
 ## Install
 0. Install [node.js](https://nodejs.org "Node Homepage") if it is not on your machine
