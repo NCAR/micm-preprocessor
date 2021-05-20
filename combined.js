@@ -97,7 +97,7 @@ const k_collector = function() {
     let parameters = reaction.rate_constant.parameters;
     if (reaction.rate_constant.reaction_class == "photolysis") {
       this.photolysisLabel.push(reaction.label);
-      parameters['index'] = this.photolysisLabel.length;
+      parameters['photolysis_rate_constant_index'] = this.photolysisLabel.length;
     }
     this.mapping.push({'index':index, 'reaction_class':reaction.rate_constant.reaction_class,
                        'parameters':reaction.rate_constant.parameters ,'label':reaction.label,
@@ -114,6 +114,7 @@ const k_collector = function() {
     type(environment_t),  intent(in)  :: environment
 
     type( rate_constant_arrhenius_t                   ) :: arrhenius
+    type( rate_constant_photolysis_t                  ) :: photolysis
     type( rate_constant_ternary_chemical_activation_t ) :: ternary_chemical_activation
     type( rate_constant_troe_t                        ) :: troe
     type( rate_constant_wennberg_alkoxy_t             ) :: wennberg_alkoxy
@@ -127,16 +128,16 @@ const k_collector = function() {
       rate_constant_string += "    !"+ this.mapping[i].label + "\n";
       rate_constant_string += "    !"+ this.mapping[i].reaction_string + "\n";
       rate_constant_string += "    "  + this.mapping[i].reaction_class + " = rate_constant_" +
-                             this.mapping[i].reaction_class + "_t(&\n";
+                             this.mapping[i].reaction_class + "_t( &\n";
       let rate_parameters = [ ];
       for (var key in this.mapping[i].parameters) {
         if (this.mapping[i].parameters.hasOwnProperty(key)){
            rate_parameters.push("        " + key + " = " + this.mapping[i].parameters[key]);
         }
       }
-      rate_constant_string += rate_parameters.join(",\n") + " )\n";
+      rate_constant_string += rate_parameters.join(", &\n") + " )\n";
       rate_constant_string += "    rate_constants(" + k_index + ") = "
-                              + this.mapping[i].reaction_class + "( environment )"  + "\n\n";
+                              + this.mapping[i].reaction_class + "%calculate( environment )"  + "\n\n";
       this.kLabel[i].simulationIndex = k_index;
       codeString += rate_constant_string;
 
@@ -421,23 +422,28 @@ const forceCollector = function(molecules){
 }
 
 const kRateConstantParameters = {
-  arrhenius:                   [ "A", "B", "C", "D", "E", "Ea" ],
-  photolysis:                  [ ],
-  ternary_chemical_activation: [ 'k0_A', 'k0_B', 'k0_C', 'kinf_A', 'kinf_B', 'kinf_C', 'Fc', 'N' ],
-  troe:                        [ 'k0_A', 'k0_B', 'k0_C', 'kinf_A', 'kinf_B', 'kinf_C', 'Fc', 'N' ],
-  wennberg_alkoxy:             [ 'X', 'Y', 'a0', 'n' ],
-  wennberg_nitrate:            [ 'X', 'Y', 'a0', 'n' ],
-  wennberg_tunneling:          [ 'A', 'B', 'C' ]
+  arrhenius:                   { A: 'double', B:'double', C: 'double', D: 'double', E: 'double', Ea: 'double' },
+  photolysis:                  { },
+  ternary_chemical_activation: { k0_A: 'double', k0_B: 'double', k0_C: 'double', kinf_A: 'double',
+                                 kinf_B: 'double', kinf_C: 'double', Fc: 'double', N: 'double' },
+  troe:                        { k0_A: 'double', k0_B: 'double', k0_C: 'double', kinf_A: 'double',
+                                 kinf_B: 'double', kinf_C: 'double', Fc: 'double', N: 'double' },
+  wennberg_alkoxy:             { X: 'double', Y: 'double', a0: 'double', n: 'int' },
+  wennberg_nitrate:            { X: 'double', Y: 'double', a0: 'double', n: 'int' },
+  wennberg_tunneling:          { A: 'double', B: 'double', C: 'double' }
 };
+
+const kTypeCasting = { double: { prefix: 'real( ', suffix: ', kind=musica_dk )' },
+                       int: { prefix: '', suffix: '' } };
 
 // Rate constant parameter set
 const RateConstant = function(data) {
   this.reaction_class = data['type'].toLowerCase();
   this.parameters = {};
   var self = this;
-  kRateConstantParameters[this.reaction_class].forEach(function(parameter) {
-    if (parameter in data) self.parameters[parameter] = data[parameter];
-  });
+  for (const [parameter, type] of Object.entries(kRateConstantParameters[this.reaction_class])) {
+    if (parameter in data) self.parameters[parameter] = kTypeCasting[type].prefix + data[parameter] + kTypeCasting[type].suffix;
+  }
 }
 
 // Chemical reaction or process
@@ -587,6 +593,7 @@ module rate_constants_utility
 
   use micm_environment,                only : environment_t
   use micm_rate_constant_arrhenius,    only : rate_constant_arrhenius_t
+  use micm_rate_constant_photolysis,   only : rate_constant_photolysis_t
   use micm_rate_constant_ternary_chemical_activation,                         &
       only : rate_constant_ternary_chemical_activation_t
   use micm_rate_constant_troe,                                                &
@@ -597,7 +604,7 @@ module rate_constants_utility
       only : rate_constant_wennberg_nitrate_t
   use micm_rate_constant_wennberg_tunneling,                                  &
       only : rate_constant_wennberg_tunneling_t
-  use musica_constants,                only : music_dk
+  use musica_constants,                only : musica_dk
 
   implicit none
   private
@@ -1337,7 +1344,7 @@ function toCode(req, res, next) {
     code_string += "\n"
 
     this.forEach(function(label, index) {
-      code_string += "  photolysis_names("+index+") = '"+label+"'\n"
+      code_string += "  photolysis_names("+ (+index + +1) +") = '"+label+"'\n"
     });
 
     code_string += "\n"
