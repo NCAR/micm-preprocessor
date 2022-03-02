@@ -478,7 +478,7 @@ const Mechanism = function(config_data) {
   this.species = [];
   this.reactions = [];
   for (const [file_name, file_data] of Object.entries(config_data)) {
-    for (const [element, element_data] of Object.entries(file_data['pmc-data'])) {
+    for (const [element, element_data] of Object.entries(file_data['camp-data'])) {
       if (!('type' in element_data)) continue;
       if (element_data['type'] == 'MECHANISM') {
         if (this.name == undefined) this.name = element_data['name'];
