@@ -106,12 +106,14 @@ const k_collector = function() {
   this.toCode = function(indexOffset){
     let codeString  =
 `  !> Calculate the rate constant for each reaction
-  subroutine calculate_rate_constants( rate_constants, environment )
+  subroutine calculate_rate_constants( ncell, rate_constants, environment )
 
+    !> Number of grid cells with chemical reactions
+    integer,              intent(in)  :: ncell
     !> Rate constant for each reaction [(molec cm-3)^(n-1) s-1]
-    real(kind=musica_dk), intent(out) :: rate_constants(:)
-    !> Environmental state
-    type(environment_t),  intent(in)  :: environment
+    real(kind=musica_dk), intent(out) :: rate_constants(:,:)
+    !> Environmental states for each grid cell
+    type(environment_t),  intent(in)  :: environment(:)
 
     type( rate_constant_arrhenius_t                   ) :: arrhenius
     type( rate_constant_photolysis_t                  ) :: photolysis
@@ -121,13 +123,16 @@ const k_collector = function() {
     type( rate_constant_wennberg_nitrate_t            ) :: wennberg_nitrate
     type( rate_constant_wennberg_tunneling_t          ) :: wennberg_tunneling
 
+    integer :: i
+
+    do i = 1, ncell
 `;
     for(let i=0; i< this.mapping.length; i++){
       let k_index = indexOffset + this.mapping[i].index;
       let rate_constant_string = "";
-      rate_constant_string += "    !"+ this.mapping[i].label + "\n";
-      rate_constant_string += "    !"+ this.mapping[i].reaction_string + "\n";
-      rate_constant_string += "    "  + this.mapping[i].reaction_class + " = rate_constant_" +
+      rate_constant_string += "      !"+ this.mapping[i].label + "\n";
+      rate_constant_string += "      !"+ this.mapping[i].reaction_string + "\n";
+      rate_constant_string += "      "  + this.mapping[i].reaction_class + " = rate_constant_" +
                              this.mapping[i].reaction_class + "_t( &\n";
       let rate_parameters = [ ];
       for (var key in this.mapping[i].parameters) {
@@ -136,13 +141,15 @@ const k_collector = function() {
         }
       }
       rate_constant_string += rate_parameters.join(", &\n") + " )\n";
-      rate_constant_string += "    rate_constants(" + k_index + ") = "
-                              + this.mapping[i].reaction_class + "%calculate( environment )"  + "\n\n";
+      rate_constant_string += "      rate_constants( i, " + k_index + " ) = "
+                              + this.mapping[i].reaction_class + "%calculate( environment( i ) )"  + "\n\n";
       this.kLabel[i].simulationIndex = k_index;
       codeString += rate_constant_string;
 
     }
-    codeString  += "  end subroutine calculate_rate_constants\n";
+    codeString += "    end do\n";
+    codeString += "\n";
+    codeString += "  end subroutine calculate_rate_constants\n";
     return codeString;
   }
 }
@@ -902,23 +909,27 @@ function constructSparseLUFactor(req, res, next) {
   }
 
   var factor_LU_fortran = "\n";
-  factor_LU_fortran += 'subroutine factor(LU)\n';
-  factor_LU_fortran += '\n\n';
-  factor_LU_fortran += '  real(r8), intent(inout) :: LU(:)\n';
-  factor_LU_fortran += '\n\n';
+  factor_LU_fortran += 'subroutine factor(ncell,LU)\n';
+  factor_LU_fortran += '\n';
+  factor_LU_fortran += '  integer,  intent(in)    :: ncell\n';
+  factor_LU_fortran += '  real(r8), intent(inout) :: LU(:,:)\n';
+  factor_LU_fortran += '\n';
+  factor_LU_fortran += 'integer :: i\n';
+  factor_LU_fortran += '\n';
+  factor_LU_fortran += 'do i = 1, ncell\n';
 
   var alt_factor = function(LUFactorization){
 
     diagInv.prototype.toCode = function(iOffset=0) {
       let targetI = iOffset + parseInt(this.targetIndex);
-      let fortranString = '  LU('+ targetI +') = 1./LU('+ targetI +')\n';
+      let fortranString = '    LU(i,'+ targetI +') = 1./LU(i,'+ targetI +')\n';
       return fortranString;
     }
 
     leftEliminate.prototype.toCode = function(iOffset=0) {
       let targetI = iOffset + parseInt(this.targetIndex);
       let diagI = iOffset + parseInt(this.diagonalIndex);
-      let fortranString = '  LU(' + targetI + ') = LU(' + targetI + ') * LU(' + diagI + ')\n';
+      let fortranString = '    LU(i,' + targetI + ') = LU(i,' + targetI + ') * LU(i,' + diagI + ')\n';
       return fortranString;
     }
 
@@ -926,7 +937,7 @@ function constructSparseLUFactor(req, res, next) {
       let targetI = iOffset + parseInt(this.targetIndex);
       let prodI0 = iOffset + parseInt(this.productTerms[0]);
       let prodI1 = iOffset + parseInt(this.productTerms[1]);
-      let fortranString = '  LU('+ targetI +') = LU('+ targetI +') - LU('+ prodI0 +')*LU('+ prodI1 +')\n';
+      let fortranString = '    LU(i,'+ targetI +') = LU(i,'+ targetI +') - LU(i,'+ prodI0 +')*LU(i,'+ prodI1 +')\n';
       return fortranString;
     }
 
@@ -934,7 +945,7 @@ function constructSparseLUFactor(req, res, next) {
       let targetI = iOffset + parseInt(this.targetIndex);
       let prodI0 = iOffset + parseInt(this.productTerms[0]);
       let prodI1 = iOffset + parseInt(this.productTerms[1]);
-      let fortranString = '  LU('+ targetI +') = -LU('+ prodI0 +')*LU('+ prodI1 +')\n';
+      let fortranString = '    LU(i,'+ targetI +') = -LU(i,'+ prodI0 +')*LU(i,'+ prodI1 +')\n';
       return fortranString;
     }
 
@@ -949,67 +960,80 @@ function constructSparseLUFactor(req, res, next) {
 
     factor_LU_fortran += fortranCodeArray.join("");
 
-    factor_LU_fortran += '\n\n';
-    factor_LU_fortran += 'end subroutine factor\n';
+    factor_LU_fortran += '  end do\n';
+    factor_LU_fortran += '\n';
+    factor_LU_fortran += 'end subroutine factor\n\n\n';
     return factor_LU_fortran;
   }
 
 
   var backsolve_L_y_eq_b_fortran = "\n";
-  backsolve_L_y_eq_b_fortran += 'subroutine backsolve_L_y_eq_b(LU,b,y)\n';
-  backsolve_L_y_eq_b_fortran +='\n\n'
-  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: LU(:)\n';
-  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: b(:)\n';
-  backsolve_L_y_eq_b_fortran += '  real(r8), intent(out) :: y(:)\n';
-  backsolve_L_y_eq_b_fortran +='\n\n'
+  backsolve_L_y_eq_b_fortran += 'subroutine backsolve_L_y_eq_b(ncell,LU,b,y)\n';
+  backsolve_L_y_eq_b_fortran += '\n'
+  backsolve_L_y_eq_b_fortran += '  integer,  intent(in) :: ncell\n'
+  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: LU(:,:)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: b(:,:)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8), intent(out) :: y(:,:)\n';
+  backsolve_L_y_eq_b_fortran += '\n'
+  backsolve_L_y_eq_b_fortran += '  integer :: i\n'
+  backsolve_L_y_eq_b_fortran += '\n'
+  backsolve_L_y_eq_b_fortran += '  do i = 1, ncell\n'
   for(var row = 0; row < logicalFactorization.size; row++){
     let fortran_row = row + 1;
-    backsolve_L_y_eq_b_fortran += '  y('+fortran_row+') = b('+fortran_row+')\n';
+    backsolve_L_y_eq_b_fortran += '    y(i,'+fortran_row+') = b(i,'+fortran_row+')\n';
     for(var col = 0; col < row; col++){
       let fortran_col = col + 1;
       let LUIndex = logicalFactorization.map[row][col] + 1;
       if(logicalFactorization.map[row][col]){
-        backsolve_L_y_eq_b_fortran +='  y('+fortran_row+') = y('+fortran_row+') - LU('+LUIndex+') * y('+fortran_col+')\n'
+        backsolve_L_y_eq_b_fortran +='    y(i,'+fortran_row+') = y(i,'+fortran_row+') - LU(i,'+LUIndex+') * y(i,'+fortran_col+')\n'
       }
     }
   }
-  backsolve_L_y_eq_b_fortran +='\n\n'
-  backsolve_L_y_eq_b_fortran +='end subroutine backsolve_L_y_eq_b\n\n\n';
+  backsolve_L_y_eq_b_fortran += '  end do\n'
+  backsolve_L_y_eq_b_fortran += '\n'
+  backsolve_L_y_eq_b_fortran += 'end subroutine backsolve_L_y_eq_b\n\n\n';
   //console.log(backsolve_L_y_eq_b_fortran);
 
 
-  var backsolve_U_x_eq_y_fortran = '\nsubroutine backsolve_U_x_eq_y(LU,y,x)\n';
-  backsolve_U_x_eq_y_fortran +='\n\n'
-  backsolve_U_x_eq_y_fortran +='  real(r8), intent(in) :: LU(:)\n'
-  backsolve_U_x_eq_y_fortran +='  real(r8), intent(in) :: y(:)\n'
-  backsolve_U_x_eq_y_fortran +='  real(r8), intent(out) :: x(:)\n'
+  var backsolve_U_x_eq_y_fortran = '\nsubroutine backsolve_U_x_eq_y(ncell,LU,y,x)\n';
+  backsolve_U_x_eq_y_fortran +='\n'
+  backsolve_U_x_eq_y_fortran +='  integer,  intent(in) :: ncell\n'
+  backsolve_U_x_eq_y_fortran +='  real(r8), intent(in) :: LU(:,:)\n'
+  backsolve_U_x_eq_y_fortran +='  real(r8), intent(in) :: y(:,:)\n'
+  backsolve_U_x_eq_y_fortran +='  real(r8), intent(out) :: x(:,:)\n'
   backsolve_U_x_eq_y_fortran +='  real(r8) :: temporary\n'
-  backsolve_U_x_eq_y_fortran +='\n\n'
+  backsolve_U_x_eq_y_fortran +='\n'
+  backsolve_U_x_eq_y_fortran +='  integer :: i\n'
+  backsolve_U_x_eq_y_fortran +='\n'
+  backsolve_U_x_eq_y_fortran +='  do i = 1, ncell\n'
   for(var row = logicalFactorization.size-1; row > -1; row--){
     let fortran_row = row + 1;
-    backsolve_U_x_eq_y_fortran +='  temporary = y('+fortran_row+')\n'
+    backsolve_U_x_eq_y_fortran +='    temporary = y(i,'+fortran_row+')\n'
     for(var col = row+1; col < logicalFactorization.size; col++){
       let fortran_col = col + 1;
       let LUIndex = logicalFactorization.map[row][col] + 1;
       if(logicalFactorization.map[row][col]){
-        backsolve_U_x_eq_y_fortran +='  temporary = temporary - LU('+LUIndex+') * x('+fortran_col+')\n'
+        backsolve_U_x_eq_y_fortran +='    temporary = temporary - LU(i,'+LUIndex+') * x(i,'+fortran_col+')\n'
       }
     }
     let LUIndex = logicalFactorization.map[row][row] + 1;
-    backsolve_U_x_eq_y_fortran +='  x('+fortran_row+') = LU('+LUIndex+') * temporary\n';
+    backsolve_U_x_eq_y_fortran +='    x(i,'+fortran_row+') = LU(i,'+LUIndex+') * temporary\n';
   }
-  backsolve_U_x_eq_y_fortran +='\n\n'
-  backsolve_U_x_eq_y_fortran +='end subroutine backsolve_U_x_eq_y\n';
+  backsolve_U_x_eq_y_fortran +='  end do\n'
+  backsolve_U_x_eq_y_fortran +='\n'
+  backsolve_U_x_eq_y_fortran +='end subroutine backsolve_U_x_eq_y\n\n\n';
   //console.log(backsolve_u_x_eq_y_fortran);
 
   let solve_string = "\n";
-  solve_string += "subroutine solve(LU, x, b) \n\n";
-  solve_string += "  real(r8), intent(in) :: LU(:), b(:) ! solve LU * x = b \n";
-  solve_string += "  real(r8), intent(out) :: x(:) \n";
-  solve_string += "  real(r8) :: y(size(b)) \n\n";
-  solve_string += "  call backsolve_L_y_eq_b(LU, b, y)\n";
-  solve_string += "  call backsolve_U_x_eq_y(LU, y, x)\n";
-  solve_string += "\nend subroutine solve \n\n";
+  solve_string += "subroutine solve(ncelll,LU,x,b)\n";
+  solve_string += "\n";
+  solve_string += "  integer,  intent(in) :: ncell\n";
+  solve_string += "  real(r8), intent(in) :: LU(:,:), b(:,:) ! solve LU * x = b\n";
+  solve_string += "  real(r8), intent(out) :: x(:,:)\n";
+  solve_string += "  real(r8) :: y(:,size(b))\n\n";
+  solve_string += "  call backsolve_L_y_eq_b(ncell, LU, b, y)\n";
+  solve_string += "  call backsolve_U_x_eq_y(ncell, LU, y, x)\n";
+  solve_string += "\nend subroutine solve\n\n";
 
   var reorderedMolecules = [];
   for(let i = 0; i< molecules.length; i++){
@@ -1036,7 +1060,7 @@ function constructSparseLUFactor(req, res, next) {
   module += "! "+res.locals.tagStats+"\n\n";
   module += "  implicit none\n\n";
   module += "  integer, parameter :: number_sparse_factor_elements = "+logicalFactorization.numberSparseFactorElements+"\n\n";
-  module += "  public :: factor, solve \n\n"
+  module += "  public :: factor, solve\n\n"
   module += "  contains\n\n";
   module += backsolve_L_y_eq_b_fortran;
   module += backsolve_U_x_eq_y_fortran;
@@ -1103,14 +1127,14 @@ function termToRateCode(term, moleculeIndex, indexOffset) {
   let troeTerm = term.troeTerm;
   let reactionString = term.reactionString;
 
-  let rateConstString = "rate_constant(" +(parseInt(idxReaction) + parseInt(indexOffset))+")";
+  let rateConstString = "rate_constant(i," +(parseInt(idxReaction) + parseInt(indexOffset))+")";
   let troeDensityCount = (troeTerm ? 1 : 0);
-  let troeDensityConversion = (troeTerm ? "number_density_air" : "");
+  let troeDensityConversion = (troeTerm ? "number_density_air(i)" : "");
 
 
   let numberDensityArray =[];
   for(let iVmr = 0; iVmr < arrayOfVmr.length; iVmr++){
-    numberDensityArray.push("number_density("+ (parseInt(indexOffset) + parseInt(moleculeIndex[arrayOfVmr[iVmr]])) +")");
+    numberDensityArray.push("number_density(i,"+ (parseInt(indexOffset) + parseInt(moleculeIndex[arrayOfVmr[iVmr]])) +")");
   }
   if(troeTerm) {numberDensityArray.push(troeDensityConversion);}
 
@@ -1172,24 +1196,31 @@ function toCode(req, res, next) {
   // code to initialize jacobian
   init_jac.toCode = function(indexOffset=0){
     let init_jac_code_string = "\n";
-    init_jac_code_string += '\nsubroutine dforce_dy(LU, rate_constant, number_density, number_density_air)\n';
-    init_jac_code_string += "\n  ! Compute the derivative of the Forcing w.r.t. each chemical";
-    init_jac_code_string += "\n  ! Also known as the Jacobian";
-    init_jac_code_string += '\n  real(r8), intent(out) :: LU(:)\n';
-    init_jac_code_string += '  real(r8), intent(in) :: rate_constant(:)\n';
-    init_jac_code_string += '  real(r8), intent(in) :: number_density(:)\n';
-    init_jac_code_string += '  real(r8), intent(in) :: number_density_air\n\n';
-    init_jac_code_string += '  LU(:) = 0\n';
+    init_jac_code_string += '\nsubroutine dforce_dy(ncell, LU, rate_constant, number_density, number_density_air)\n';
+    init_jac_code_string += "  ! Compute the derivative of the Forcing w.r.t. each chemical\n";
+    init_jac_code_string += "  ! Also known as the Jacobian\n";
+    init_jac_code_string += '  integer,  intent(in) :: ncell ! number of grid cells with chemical reactions\n';
+    init_jac_code_string += '  real(r8), intent(out) :: LU(:,:)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: rate_constant(:,:)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: number_density(:,:)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: number_density_air(:)\n';
     init_jac_code_string += '\n';
+    init_jac_code_string += '  integer :: i\n';
+    init_jac_code_string += '\n';
+    init_jac_code_string += '  LU(:,:) = 0\n';
+    init_jac_code_string += '\n';
+    init_jac_code_string += '  do i = 1, ncell\n';
     for (let ijac = 0; ijac < init_jac.length; ijac++){
       let element = init_jac[ijac];
-      init_jac_code_string += '\n  ! df_'+element.forcedMolecule+'/d('+element.sensitivityMolecule+')\n';
-      let LUElement = 'LU('+(element.LUArrayIndex+indexOffset)+') '
+      init_jac_code_string += '    ! df_'+element.forcedMolecule+'/d('+element.sensitivityMolecule+')\n';
+      let LUElement = 'LU(i,'+(element.LUArrayIndex+indexOffset)+') '
       for(let iterm = 0; iterm < element.jacobianTerms.length; iterm ++){
         init_jac_code_string += '    !  '+element.jacobianTerms[iterm].reactionString+'\n';
         init_jac_code_string += '    '+LUElement+'= '+LUElement+termToCode(element.jacobianTerms[iterm], moleculeIndex, indexOffset) +'\n\n' ;
       }
     }
+    init_jac_code_string += '  end do\n';
+    init_jac_code_string += '\n';
     init_jac_code_string += 'end subroutine dforce_dy\n';
     return init_jac_code_string;
   }
@@ -1197,26 +1228,30 @@ function toCode(req, res, next) {
   init_jac.factored_alpha_minus_jac = function(indexOffset=0) {
     // Construct unfactored LU = alpha * I - jacobian, then call factorization routine on unfactored LU
     let diagonalIndices = init_jac[0].diagonalIndices;
-    let factored_alpha_minus_jac_string  = '\nsubroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)\n';
-    factored_alpha_minus_jac_string += '  !compute LU decomposition of [\alpha * I - dforce_dy]\n';
+    let factored_alpha_minus_jac_string  = '\nsubroutine factored_alpha_minus_jac(ncell, LU, alpha, dforce_dy)\n';
+    factored_alpha_minus_jac_string += '  ! Compute LU decomposition of [\alpha * I - dforce_dy]\n';
     factored_alpha_minus_jac_string += '\n';
-    factored_alpha_minus_jac_string += '  real(r8), intent(in) :: dforce_dy(:)\n';
+    factored_alpha_minus_jac_string += '  integer,  intent(in) :: ncell ! number of grid cells with chemical reactions\n';
+    factored_alpha_minus_jac_string += '  real(r8), intent(in) :: dforce_dy(:,:)\n';
     factored_alpha_minus_jac_string += '  real(r8), intent(in) :: alpha\n';
-    factored_alpha_minus_jac_string += '  real(r8), intent(out) :: LU(:)\n';
+    factored_alpha_minus_jac_string += '  real(r8), intent(out) :: LU(:,:)\n';
     factored_alpha_minus_jac_string += '\n';
-    factored_alpha_minus_jac_string += '  LU(:) = -dforce_dy(:)\n';
+    factored_alpha_minus_jac_string += '  integer :: i\n';
+    factored_alpha_minus_jac_string += '\n';
+    factored_alpha_minus_jac_string += '  LU(:,:) = -dforce_dy(:,:)\n';
     factored_alpha_minus_jac_string += '\n';
 
     // Add alpha to diagonal elements
-    factored_alpha_minus_jac_string += '! add alpha to diagonal elements\n';
-    factored_alpha_minus_jac_string += '\n';
+    factored_alpha_minus_jac_string += '  ! add alpha to diagonal elements\n';
+    factored_alpha_minus_jac_string += '  do i = 1, ncell\n';
     for(let iRank = 0; iRank < diagonalIndices.length; iRank++){
       let diag = diagonalIndices[iRank] + indexOffset;
-      factored_alpha_minus_jac_string += '  LU('+ diag + ') = -dforce_dy('+ diag + ') + alpha \n';
+      factored_alpha_minus_jac_string += '    LU(i,'+ diag + ') = -dforce_dy(i,'+ diag + ') + alpha\n';
     }
 
+    factored_alpha_minus_jac_string += '  end do\n';
     factored_alpha_minus_jac_string += '\n';
-    factored_alpha_minus_jac_string += '  call factor(LU) \n';
+    factored_alpha_minus_jac_string += '  call factor(LU)\n';
     factored_alpha_minus_jac_string += '\n';
     factored_alpha_minus_jac_string += 'end subroutine factored_alpha_minus_jac\n';
 
@@ -1230,53 +1265,66 @@ function toCode(req, res, next) {
 
   init_jac.dforce_dy_times_vector_string = function(indexOffset=0){
   // Construct code for dF/dy * vector
-    let dforce_dy_times_vector_string  = '\npure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)\n';
-    dforce_dy_times_vector_string += '\n  !  Compute product of [ dforce_dy * vector ]';
-    dforce_dy_times_vector_string += '\n  !  Commonly used to compute time-truncation errors [dforce_dy * force ]\n\n';
-    dforce_dy_times_vector_string += '  real(r8), intent(in) :: dforce_dy(:) ! Jacobian of forcing\n';
-    dforce_dy_times_vector_string += '  real(r8), intent(in) :: vector(:)    ! Vector ordered as the order of number density in dy\n';
-    dforce_dy_times_vector_string += '  real(r8), intent(out) :: cummulative_product(:)  ! Product of jacobian with vector\n';
+    let dforce_dy_times_vector_string  = '\npure subroutine dforce_dy_times_vector(ncell, dforce_dy, vector, cummulative_product)\n';
+    dforce_dy_times_vector_string += '  !  Compute product of [ dforce_dy * vector ]\n';
+    dforce_dy_times_vector_string += '  !  Commonly used to compute time-truncation errors [dforce_dy * force ]\n\n';
+    dforce_dy_times_vector_string += '  integer,  intent(in) :: ncell ! Number of grid cells with chemical reactions\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(in) :: dforce_dy(:,:) ! Jacobian of forcing\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(in) :: vector(:,:)    ! Vector ordered as the order of number density in dy\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(out) :: cummulative_product(:,:)  ! Product of jacobian with vector\n';
     dforce_dy_times_vector_string += '\n';
-    dforce_dy_times_vector_string += '  cummulative_product(:) = 0\n\n';
+    dforce_dy_times_vector_string += '  integer :: i\n';
+    dforce_dy_times_vector_string += '\n';
+    dforce_dy_times_vector_string += '  cummulative_product(:,:) = 0\n';
+    dforce_dy_times_vector_string += '\n';
+    dforce_dy_times_vector_string += '  do i = 1, ncell\n';
 
     for (let ijac = 0; ijac < init_jac.length; ijac++){
       let element = init_jac[ijac];
-      dforce_dy_times_vector_string += '\n  ! df_'+element.forcedMolecule+'/d('+element.sensitivityMolecule+') * '+element.sensitivityMolecule+'_temporary\n';
-      let LUElement = 'dforce_dy('+(element.LUArrayIndex+indexOffset)+')'
+      dforce_dy_times_vector_string += '\n    ! df_'+element.forcedMolecule+'/d('+element.sensitivityMolecule+') * '+element.sensitivityMolecule+'_temporary\n';
+      let LUElement = 'dforce_dy(i,'+(element.LUArrayIndex+indexOffset)+')'
       let forceIndex = moleculeIndex[element.forcedMolecule]+ indexOffset;
       let sensitivityIndex = moleculeIndex[element.sensitivityMolecule]+ indexOffset;
-      dforce_dy_times_vector_string += '  cummulative_product('+forceIndex+') = cummulative_product('+forceIndex+') + ';
-      dforce_dy_times_vector_string += LUElement+' * vector('+sensitivityIndex+')\n\n' ;
+      dforce_dy_times_vector_string += '    cummulative_product(i,'+forceIndex+') = cummulative_product(i,'+forceIndex+') + ';
+      dforce_dy_times_vector_string += LUElement+' * vector(i,'+sensitivityIndex+')\n' ;
     }
-    dforce_dy_times_vector_string  += '\nend subroutine dforce_dy_times_vector\n';
+    dforce_dy_times_vector_string += '\n';
+    dforce_dy_times_vector_string += '  end do\n';
+    dforce_dy_times_vector_string += '\n';
+    dforce_dy_times_vector_string  += 'end subroutine dforce_dy_times_vector\n';
     return dforce_dy_times_vector_string;
   }
 
   force.toCode = function(indexOffset=0) {
 
     let force_code_string = "\n";
-    force_code_string +="subroutine p_force(rate_constant, number_density, number_density_air, force)\n";
+    force_code_string +="subroutine p_force(ncell, rate_constant, number_density, number_density_air, force)\n";
     force_code_string +="  ! Compute force function for all molecules\n";
     force_code_string +="\n";
-    force_code_string +="  real(r8), intent(in) :: rate_constant(:)\n";
-    force_code_string +="  real(r8), intent(in) :: number_density(:)\n";
-    force_code_string +="  real(r8), intent(in) :: number_density_air\n";
-    force_code_string +="  real(r8), intent(out) :: force(:)\n";
+    force_code_string +="  integer,  intent(in) :: ncell ! Number of grid cells with chemical reactions\n";
+    force_code_string +="  real(r8), intent(in) :: rate_constant(:,:)\n";
+    force_code_string +="  real(r8), intent(in) :: number_density(:,:)\n";
+    force_code_string +="  real(r8), intent(in) :: number_density_air(:)\n";
+    force_code_string +="  real(r8), intent(out) :: force(:,:)\n";
     force_code_string +="\n";
+    force_code_string +="  integer :: i\n";
+    force_code_string +="\n";
+    force_code_string +="  do i = 1, ncell\n";
 
     for(let iMolecule = 0; iMolecule < force.length; iMolecule++ ){
-      let forceString = "force("+(iMolecule+indexOffset)+")";
-      force_code_string +="\n\n! "+force[iMolecule].constituentName+"\n";
-      force_code_string +="  "+forceString+" = 0\n";
+      let forceString = "force(i,"+(iMolecule+indexOffset)+")";
+      force_code_string +="\n    ! "+force[iMolecule].constituentName+"\n";
+      force_code_string +="    "+forceString+" = 0\n";
 
       let nTendency = force[iMolecule].tendency.length;
       for (let iTendency = 0; iTendency < nTendency; iTendency ++){
         let termCode = termToCode(force[iMolecule].tendency[iTendency], moleculeIndex, indexOffset);
-        force_code_string +="\n  ! "+ force[iMolecule].tendency[iTendency].reactionString+"\n";
-        force_code_string +="  "+forceString+" = "+forceString +" "+ termCode+"\n";
+        force_code_string +="\n    ! "+ force[iMolecule].tendency[iTendency].reactionString+"\n";
+        force_code_string +="    "+forceString+" = "+forceString +" "+ termCode+"\n";
       }
     }
 
+    force_code_string +="  end do\n";
     force_code_string +="\n";
     force_code_string +="end subroutine p_force\n";
 
@@ -1288,22 +1336,29 @@ function toCode(req, res, next) {
   allReactions.calcRatesToCode = function(indexOffset=0) {
 
     let code_string = "\n";
-    code_string += "function reaction_rates(rate_constant, number_density, number_density_air)\n";
+    code_string += "function reaction_rates(ncell, rate_constant, number_density, number_density_air)\n";
     code_string += "  ! Compute reaction rates\n";
     code_string += "\n";
-    code_string += "  real(r8) :: reaction_rates(number_of_reactions)\n";
-    code_string += "  real(r8), intent(in) :: rate_constant(:)\n";
-    code_string += "  real(r8), intent(in) :: number_density(:)\n";
-    code_string += "  real(r8), intent(in) :: number_density_air\n";
+    code_string += "  integer,  intent(in) :: ncell ! Number of grid cells with chemical reactions\n";
+    code_string += "  real(r8) :: reaction_rates(ncell,number_of_reactions)\n";
+    code_string += "  real(r8), intent(in) :: rate_constant(:,:)\n";
+    code_string += "  real(r8), intent(in) :: number_density(:,:)\n";
+    code_string += "  real(r8), intent(in) :: number_density_air(:)\n";
+    code_string += "\n";
+    code_string += "  integer :: i\n";
+    code_string += "\n";
+    code_string += "  do i = 1, ncell\n";
 
     this.forEach(function(reaction) {
       let rateTerm = new term(reaction.idxReaction, reaction.reactants, reaction.troe, 1, reaction.reactionString);
       let termCode = termToRateCode(rateTerm, moleculeIndex, indexOffset);
       code_string += "\n";
-      code_string += "  ! "+rateTerm.reactionString+"\n";
-      code_string += "  reaction_rates("+ (+reaction.idxReaction + +1) +") = "+termCode+"\n";
+      code_string += "    ! "+rateTerm.reactionString+"\n";
+      code_string += "    reaction_rates(i,"+ (+reaction.idxReaction + +1) +") = "+termCode+"\n";
     });
 
+    code_string += "\n";
+    code_string += "  end do\n";
     code_string += "\n";
     code_string += "end function reaction_rates\n";
     code_string += "\n";
