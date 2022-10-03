@@ -1029,8 +1029,8 @@ function constructSparseLUFactor(req, res, next) {
   solve_string += "\n";
   solve_string += "  integer,  intent(in) :: ncell\n";
   solve_string += "  real(r8), intent(in) :: LU(:,:), b(:,:) ! solve LU * x = b\n";
-  solve_string += "  real(r8), intent(out) :: x(:,:)\n";
-  solve_string += "  real(r8) :: y(:,size(b))\n\n";
+  solve_string += "  real(r8), intent(out) :: x(:,:)\n\n";
+  solve_string += "  real(r8) :: y(ncell,size(b,2))\n\n";
   solve_string += "  call backsolve_L_y_eq_b(ncell, LU, b, y)\n";
   solve_string += "  call backsolve_U_x_eq_y(ncell, LU, y, x)\n";
   solve_string += "\nend subroutine solve\n\n";
