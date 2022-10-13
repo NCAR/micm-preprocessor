@@ -1025,7 +1025,7 @@ function constructSparseLUFactor(req, res, next) {
   //console.log(backsolve_u_x_eq_y_fortran);
 
   let solve_string = "\n";
-  solve_string += "subroutine solve(ncelll,LU,x,b)\n";
+  solve_string += "subroutine solve(ncell,LU,x,b)\n";
   solve_string += "\n";
   solve_string += "  integer,  intent(in) :: ncell\n";
   solve_string += "  real(r8), intent(in) :: LU(:,:), b(:,:) ! solve LU * x = b\n";
@@ -1251,7 +1251,7 @@ function toCode(req, res, next) {
 
     factored_alpha_minus_jac_string += '  end do\n';
     factored_alpha_minus_jac_string += '\n';
-    factored_alpha_minus_jac_string += '  call factor(LU)\n';
+    factored_alpha_minus_jac_string += '  call factor(ncell,LU)\n';
     factored_alpha_minus_jac_string += '\n';
     factored_alpha_minus_jac_string += 'end subroutine factored_alpha_minus_jac\n';
 
