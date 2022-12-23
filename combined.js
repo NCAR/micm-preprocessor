@@ -109,9 +109,9 @@ const k_collector = function() {
   subroutine calculate_rate_constants( rate_constants, environment )
 
     !> Rate constant for each reaction [(molec cm-3)^(n-1) s-1]
-    real(kind=musica_dk), intent(out) :: rate_constants(:,:)
+    real(kind=musica_dk), intent(out) :: rate_constants(ncell,number_of_reactions)
     !> Environmental states for each grid cell
-    type(environment_t),  intent(in)  :: environment(:)
+    type(environment_t),  intent(in)  :: environment(ncell)
 
     type( rate_constant_arrhenius_t                   ) :: arrhenius
     type( rate_constant_photolysis_t                  ) :: photolysis
@@ -123,30 +123,28 @@ const k_collector = function() {
 
     integer :: i
 
-    do i = 1, ncell
 `;
     for(let i=0; i< this.mapping.length; i++){
       let k_index = indexOffset + this.mapping[i].index;
       let rate_constant_string = "";
-      rate_constant_string += "      !"+ this.mapping[i].label + "\n";
-      rate_constant_string += "      !"+ this.mapping[i].reaction_string + "\n";
-      rate_constant_string += "      "  + this.mapping[i].reaction_class + " = rate_constant_" +
+      rate_constant_string += "    !"+ this.mapping[i].label + "\n";
+      rate_constant_string += "    !"+ this.mapping[i].reaction_string + "\n";
+      rate_constant_string += "    "  + this.mapping[i].reaction_class + " = rate_constant_" +
                              this.mapping[i].reaction_class + "_t( &\n";
       let rate_parameters = [ ];
       for (var key in this.mapping[i].parameters) {
         if (this.mapping[i].parameters.hasOwnProperty(key)){
-           rate_parameters.push("        " + key + " = " + this.mapping[i].parameters[key]);
+           rate_parameters.push("      " + key + " = " + this.mapping[i].parameters[key]);
         }
       }
       rate_constant_string += rate_parameters.join(", &\n") + " )\n";
-      rate_constant_string += "      rate_constants( i, " + k_index + " ) = "
-                              + this.mapping[i].reaction_class + "%calculate( environment( i ) )"  + "\n\n";
+      rate_constant_string += "    !$acc enter data copyin("+this.mapping[i].reaction_class+") async(STREAM0)\n";
+      rate_constant_string += "    call "+this.mapping[i].reaction_class+"%calculate( environment, rate_constants(1:ncell,"+k_index+") )\n";
+      rate_constant_string += "    !$acc exit data delete("+this.mapping[i].reaction_class+") async(STREAM0)\n\n";
       this.kLabel[i].simulationIndex = k_index;
       codeString += rate_constant_string;
 
     }
-    codeString += "    end do\n";
-    codeString += "\n";
     codeString += "  end subroutine calculate_rate_constants\n";
     return codeString;
   }
@@ -599,18 +597,20 @@ module rate_constants_utility
   use micm_environment,                only : environment_t
   use micm_rate_constant_arrhenius,    only : rate_constant_arrhenius_t
   use micm_rate_constant_photolysis,   only : rate_constant_photolysis_t
-  use micm_rate_constant_ternary_chemical_activation,                         &
+  use micm_rate_constant_ternary_chemical_activation,                    &
       only : rate_constant_ternary_chemical_activation_t
-  use micm_rate_constant_troe,                                                &
+  use micm_rate_constant_troe,                                           &
       only : rate_constant_troe_t
-  use micm_rate_constant_wennberg_alkoxy,                                     &
+  use micm_rate_constant_wennberg_alkoxy,                                &
       only : rate_constant_wennberg_alkoxy_t
-  use micm_rate_constant_wennberg_nitrate,                                    &
+  use micm_rate_constant_wennberg_nitrate,                               &
       only : rate_constant_wennberg_nitrate_t
-  use micm_rate_constant_wennberg_tunneling,                                  &
+  use micm_rate_constant_wennberg_tunneling,                             &
       only : rate_constant_wennberg_tunneling_t
   use musica_constants,                only : musica_dk
-  use constants,                       only : ncell=>kNumberOfGridCells
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
+  use kinetics_utilities,              only : number_of_reactions 
 
   implicit none
   private
