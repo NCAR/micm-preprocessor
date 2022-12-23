@@ -1216,15 +1216,25 @@ function toCode(req, res, next) {
     init_jac_code_string += '\nsubroutine dforce_dy(LU, rate_constant, number_density, number_density_air)\n';
     init_jac_code_string += "  ! Compute the derivative of the Forcing w.r.t. each chemical\n";
     init_jac_code_string += "  ! Also known as the Jacobian\n";
-    init_jac_code_string += '  real(r8), intent(out) :: LU(:,:)\n';
-    init_jac_code_string += '  real(r8), intent(in) :: rate_constant(:,:)\n';
-    init_jac_code_string += '  real(r8), intent(in) :: number_density(:,:)\n';
-    init_jac_code_string += '  real(r8), intent(in) :: number_density_air(:)\n';
+    init_jac_code_string += '  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: number_density(ncell,number_of_species)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: number_density_air(ncell,number_of_species)\n';
     init_jac_code_string += '\n';
-    init_jac_code_string += '  integer :: i\n';
+    init_jac_code_string += '  ! Local variables\n';
+    init_jac_code_string += '  integer :: i, j \n';
     init_jac_code_string += '\n';
-    init_jac_code_string += '  LU(:,:) = 0\n';
+    init_jac_code_string += '  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)\n';
+    init_jac_code_string += '  !$acc loop gang vector collapse(2)\n';
+    init_jac_code_string += '  do j = 1, number_sparse_factor_elements\n';
+    init_jac_code_string += '     do i = 1, ncell\n';
+    init_jac_code_string += '        LU(i,j) = 0\n';
+    init_jac_code_string += '     end do\n';
+    init_jac_code_string += '  end do\n';
+    init_jac_code_string += '  !$acc end parallel\n';
     init_jac_code_string += '\n';
+    init_jac_code_string += '  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)\n';
+    init_jac_code_string += '  !$acc loop gang vector\n';
     init_jac_code_string += '  do i = 1, ncell\n';
     for (let ijac = 0; ijac < init_jac.length; ijac++){
       let element = init_jac[ijac];
@@ -1236,6 +1246,7 @@ function toCode(req, res, next) {
       }
     }
     init_jac_code_string += '  end do\n';
+    init_jac_code_string += '  !$acc end parallel\n';
     init_jac_code_string += '\n';
     init_jac_code_string += 'end subroutine dforce_dy\n';
     return init_jac_code_string;
@@ -1247,17 +1258,28 @@ function toCode(req, res, next) {
     let factored_alpha_minus_jac_string  = '\nsubroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)\n';
     factored_alpha_minus_jac_string += '  ! Compute LU decomposition of [\alpha * I - dforce_dy]\n';
     factored_alpha_minus_jac_string += '\n';
-    factored_alpha_minus_jac_string += '  real(r8), intent(in) :: dforce_dy(:,:)\n';
+    factored_alpha_minus_jac_string += '  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements)\n';
     factored_alpha_minus_jac_string += '  real(r8), intent(in) :: alpha\n';
-    factored_alpha_minus_jac_string += '  real(r8), intent(out) :: LU(:,:)\n';
+    factored_alpha_minus_jac_string += '  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)\n';
     factored_alpha_minus_jac_string += '\n';
-    factored_alpha_minus_jac_string += '  integer :: i\n';
+    factored_alpha_minus_jac_string += '  ! Local variables\n';
+    factored_alpha_minus_jac_string += '  integer :: i, j\n';
     factored_alpha_minus_jac_string += '\n';
-    factored_alpha_minus_jac_string += '  LU(:,:) = -dforce_dy(:,:)\n';
+    factored_alpha_minus_jac_string += '  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)\n';
+    factored_alpha_minus_jac_string += '  !$acc loop gang vector collapse(2)\n';
+    factored_alpha_minus_jac_string += '  do j = 1, number_sparse_factor_elements \n';
+    factored_alpha_minus_jac_string += '     do i = 1, ncell\n';
+    factored_alpha_minus_jac_string += '        LU(i,j) = -dforce_dy(i,j)\n';
+    factored_alpha_minus_jac_string += '     end do\n';
+    factored_alpha_minus_jac_string += '  end do\n';
+    factored_alpha_minus_jac_string += '  !$acc end parallel\n';
     factored_alpha_minus_jac_string += '\n';
 
     // Add alpha to diagonal elements
     factored_alpha_minus_jac_string += '  ! add alpha to diagonal elements\n';
+    factored_alpha_minus_jac_string += '\n';
+    factored_alpha_minus_jac_string += '  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)\n';
+    factored_alpha_minus_jac_string += '  !$acc loop gang vector\n';
     factored_alpha_minus_jac_string += '  do i = 1, ncell\n';
     for(let iRank = 0; iRank < diagonalIndices.length; iRank++){
       let diag = diagonalIndices[iRank] + indexOffset;
@@ -1265,6 +1287,7 @@ function toCode(req, res, next) {
     }
 
     factored_alpha_minus_jac_string += '  end do\n';
+    factored_alpha_minus_jac_string += '  !$acc end parallel\n';
     factored_alpha_minus_jac_string += '\n';
     factored_alpha_minus_jac_string += '  call factor(LU)\n';
     factored_alpha_minus_jac_string += '\n';
@@ -1283,14 +1306,24 @@ function toCode(req, res, next) {
     let dforce_dy_times_vector_string  = '\npure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)\n';
     dforce_dy_times_vector_string += '  !  Compute product of [ dforce_dy * vector ]\n';
     dforce_dy_times_vector_string += '  !  Commonly used to compute time-truncation errors [dforce_dy * force ]\n\n';
-    dforce_dy_times_vector_string += '  real(r8), intent(in) :: dforce_dy(:,:) ! Jacobian of forcing\n';
-    dforce_dy_times_vector_string += '  real(r8), intent(in) :: vector(:,:)    ! Vector ordered as the order of number density in dy\n';
-    dforce_dy_times_vector_string += '  real(r8), intent(out) :: cummulative_product(:,:)  ! Product of jacobian with vector\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy\n';
+    dforce_dy_times_vector_string += '  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector\n';
     dforce_dy_times_vector_string += '\n';
-    dforce_dy_times_vector_string += '  integer :: i\n';
+    dforce_dy_times_vector_string += '  ! Local variables\n';
+    dforce_dy_times_vector_string += '  integer :: i, j\n';
     dforce_dy_times_vector_string += '\n';
-    dforce_dy_times_vector_string += '  cummulative_product(:,:) = 0\n';
+    dforce_dy_times_vector_string += '  !$acc parallel default(present) vector_length(VLEN)\n';
+    dforce_dy_times_vector_string += '  !$acc loop gang vector collapse(2)\n';
+    dforce_dy_times_vector_string += '  do j = 1, number_of_species\n';
+    dforce_dy_times_vector_string += '     do i = 1, ncell\n';
+    dforce_dy_times_vector_string += '        cummulative_product(i,j) = 0\n';
+    dforce_dy_times_vector_string += '     end do\n';
+    dforce_dy_times_vector_string += '  end do\n';
+    dforce_dy_times_vector_string += '  !$acc end parallel\n';
     dforce_dy_times_vector_string += '\n';
+    dforce_dy_times_vector_string += '  !$acc parallel default(present) vector_length(VLEN)\n';
+    dforce_dy_times_vector_string += '  !$acc loop gang vector\n';
     dforce_dy_times_vector_string += '  do i = 1, ncell\n';
 
     for (let ijac = 0; ijac < init_jac.length; ijac++){
@@ -1304,6 +1337,7 @@ function toCode(req, res, next) {
     }
     dforce_dy_times_vector_string += '\n';
     dforce_dy_times_vector_string += '  end do\n';
+    dforce_dy_times_vector_string += '  !$acc end parallel\n';
     dforce_dy_times_vector_string += '\n';
     dforce_dy_times_vector_string  += 'end subroutine dforce_dy_times_vector\n';
     return dforce_dy_times_vector_string;
@@ -1315,13 +1349,16 @@ function toCode(req, res, next) {
     force_code_string +="subroutine p_force(rate_constant, number_density, number_density_air, force)\n";
     force_code_string +="  ! Compute force function for all molecules\n";
     force_code_string +="\n";
-    force_code_string +="  real(r8), intent(in) :: rate_constant(:,:)\n";
-    force_code_string +="  real(r8), intent(in) :: number_density(:,:)\n";
-    force_code_string +="  real(r8), intent(in) :: number_density_air(:)\n";
-    force_code_string +="  real(r8), intent(out) :: force(:,:)\n";
+    force_code_string +="  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)\n";
+    force_code_string +="  real(r8), intent(in) :: number_density(ncell,number_of_species)\n";
+    force_code_string +="  real(r8), intent(in) :: number_density_air(ncell)\n";
+    force_code_string +="  real(r8), intent(out) :: force(ncell,number_of_species)\n";
     force_code_string +="\n";
+    force_code_string +="  ! Local variables\n";
     force_code_string +="  integer :: i\n";
     force_code_string +="\n";
+    force_code_string +="  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)\n";
+    force_code_string +="  !$acc loop gang vector\n";
     force_code_string +="  do i = 1, ncell\n";
 
     for(let iMolecule = 0; iMolecule < force.length; iMolecule++ ){
@@ -1338,6 +1375,7 @@ function toCode(req, res, next) {
     }
 
     force_code_string +="  end do\n";
+    force_code_string +="  !$acc end parallel\n";
     force_code_string +="\n";
     force_code_string +="end subroutine p_force\n";
 
@@ -1349,16 +1387,19 @@ function toCode(req, res, next) {
   allReactions.calcRatesToCode = function(indexOffset=0) {
 
     let code_string = "\n";
-    code_string += "function reaction_rates(rate_constant, number_density, number_density_air)\n";
+    code_string += "subroutine calc_reaction_rates(rate_constant, number_density, number_density_air, reaction_rates)\n";
     code_string += "  ! Compute reaction rates\n";
     code_string += "\n";
-    code_string += "  real(r8), intent(in) :: rate_constant(:,:)\n";
-    code_string += "  real(r8), intent(in) :: number_density(:,:)\n";
-    code_string += "  real(r8), intent(in) :: number_density_air(:)\n";
+    code_string += "  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)\n";
+    code_string += "  real(r8), intent(in)  :: number_density(ncell,number_of_species)\n";
+    code_string += "  real(r8), intent(in)  :: number_density_air(ncell)\n";
+    code_string += "  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)\n";
     code_string += "\n";
+    code_string += "  ! Local variables\n";
     code_string += "  integer :: i\n";
-    code_string += "  real(r8) :: reaction_rates(ncell,number_of_reactions)\n";
     code_string += "\n";
+    code_string += "  !$acc parallel default(present) vector_length(VLEN)\n";
+    code_string += "  !$acc loop gang vector\n";
     code_string += "  do i = 1, ncell\n";
 
     this.forEach(function(reaction) {
@@ -1371,8 +1412,9 @@ function toCode(req, res, next) {
 
     code_string += "\n";
     code_string += "  end do\n";
+    code_string += "  !$acc end parallel\n";
     code_string += "\n";
-    code_string += "end function reaction_rates\n";
+    code_string += "end subroutine calc_reaction_rates\n";
     code_string += "\n";
 
     return code_string;
@@ -1446,22 +1488,23 @@ function toCode(req, res, next) {
 
   let indexOffset = 1; //convert to fortran
   let module = "module kinetics_utilities\n";
-  module += "use musica_constants, only: r8 => musica_dk\n\n";
+  module += "use musica_constants, only: r8 => musica_dk\n";
+  module += "use constants, only : ncell=>kNumberOfGridCells, VLEN, &\n";
+  module += "                      STREAM0\n\n";
   module += "! This code was generated by Preprocessor revision "+revision+"\n"
   module += "! Preprocessor source "+git_remote+"\n\n"
   module += "! "+res.locals.tagDescription+"\n";
   module += "! "+res.locals.tagStats+"\n\n";
-  module += "  use factor_solve_utilities, only : factor\n"
-  module += "  use constants,              only : ncell=>kNumberOfGridCells\n\n"
+  module += "  use factor_solve_utilities, only : factor, number_of_species, &\n"
+  module += "                                     number_sparse_factor_elements\n\n"
   module += "  implicit none\n\n";
   module += "  private\n";
-  module += "  public :: dforce_dy_times_vector, factored_alpha_minus_jac, p_force, reaction_rates, reaction_names, &\n"
+  module += "  public :: dforce_dy_times_vector, factored_alpha_minus_jac, p_force, calc_reaction_rates, reaction_names, &\n"
   module += "            photolysis_names, dforce_dy, species_names\n";
   module += "\n";
   module += "  ! Total number of reactions\n";
   module += "  integer, parameter, public  :: number_of_reactions                = "+allReactions.length+"\n";
   module += "  integer, parameter, public  :: number_of_photolysis_reactions     = "+photolysisLabels.length+"\n";
-  module += "  integer, parameter, public  :: number_of_species                  = "+reorderedMolecules.length+"\n"
   module += "\n";
   module += "  contains\n";
   module += init_jac.toCode(indexOffset);
