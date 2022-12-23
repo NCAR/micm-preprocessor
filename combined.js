@@ -910,24 +910,26 @@ function constructSparseLUFactor(req, res, next) {
   var factor_LU_fortran = "\n";
   factor_LU_fortran += 'subroutine factor(LU)\n';
   factor_LU_fortran += '\n';
-  factor_LU_fortran += '  real(r8), intent(inout) :: LU(:,:)\n';
+  factor_LU_fortran += '  real(r8), intent(inout) :: LU(ncell,number_sparse_factor_elements)\n';
   factor_LU_fortran += '\n';
-  factor_LU_fortran += 'integer :: i\n';
+  factor_LU_fortran += '  integer :: i\n';
   factor_LU_fortran += '\n';
-  factor_LU_fortran += 'do i = 1, ncell\n';
+  factor_LU_fortran += '  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)\n';
+  factor_LU_fortran += '  !$acc loop gang vector\n';
+  factor_LU_fortran += '  do i = 1, ncell\n';
 
   var alt_factor = function(LUFactorization){
 
     diagInv.prototype.toCode = function(iOffset=0) {
       let targetI = iOffset + parseInt(this.targetIndex);
-      let fortranString = '    LU(i,'+ targetI +') = 1./LU(i,'+ targetI +')\n';
+      let fortranString = '     LU(i,'+ targetI +') = 1./LU(i,'+ targetI +')\n';
       return fortranString;
     }
 
     leftEliminate.prototype.toCode = function(iOffset=0) {
       let targetI = iOffset + parseInt(this.targetIndex);
       let diagI = iOffset + parseInt(this.diagonalIndex);
-      let fortranString = '    LU(i,' + targetI + ') = LU(i,' + targetI + ') * LU(i,' + diagI + ')\n';
+      let fortranString = '     LU(i,' + targetI + ') = LU(i,' + targetI + ') * LU(i,' + diagI + ')\n';
       return fortranString;
     }
 
@@ -935,7 +937,7 @@ function constructSparseLUFactor(req, res, next) {
       let targetI = iOffset + parseInt(this.targetIndex);
       let prodI0 = iOffset + parseInt(this.productTerms[0]);
       let prodI1 = iOffset + parseInt(this.productTerms[1]);
-      let fortranString = '    LU(i,'+ targetI +') = LU(i,'+ targetI +') - LU(i,'+ prodI0 +')*LU(i,'+ prodI1 +')\n';
+      let fortranString = '     LU(i,'+ targetI +') = LU(i,'+ targetI +') - LU(i,'+ prodI0 +')*LU(i,'+ prodI1 +')\n';
       return fortranString;
     }
 
@@ -943,7 +945,7 @@ function constructSparseLUFactor(req, res, next) {
       let targetI = iOffset + parseInt(this.targetIndex);
       let prodI0 = iOffset + parseInt(this.productTerms[0]);
       let prodI1 = iOffset + parseInt(this.productTerms[1]);
-      let fortranString = '    LU(i,'+ targetI +') = -LU(i,'+ prodI0 +')*LU(i,'+ prodI1 +')\n';
+      let fortranString = '     LU(i,'+ targetI +') = -LU(i,'+ prodI0 +')*LU(i,'+ prodI1 +')\n';
       return fortranString;
     }
 
@@ -959,6 +961,7 @@ function constructSparseLUFactor(req, res, next) {
     factor_LU_fortran += fortranCodeArray.join("");
 
     factor_LU_fortran += '  end do\n';
+    factor_LU_fortran += '  !$acc end parallel\n';
     factor_LU_fortran += '\n';
     factor_LU_fortran += 'end subroutine factor\n\n\n';
     return factor_LU_fortran;
@@ -968,12 +971,14 @@ function constructSparseLUFactor(req, res, next) {
   var backsolve_L_y_eq_b_fortran = "\n";
   backsolve_L_y_eq_b_fortran += 'subroutine backsolve_L_y_eq_b(LU,b,y)\n';
   backsolve_L_y_eq_b_fortran += '\n'
-  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: LU(:,:)\n';
-  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: b(:,:)\n';
-  backsolve_L_y_eq_b_fortran += '  real(r8), intent(out) :: y(:,:)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: LU(ncell,number_sparse_factor_elements)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8), intent(in) :: b(ncell,number_of_species)\n';
+  backsolve_L_y_eq_b_fortran += '  real(r8), intent(out) :: y(ncell,number_of_species)\n';
   backsolve_L_y_eq_b_fortran += '\n'
   backsolve_L_y_eq_b_fortran += '  integer :: i\n'
   backsolve_L_y_eq_b_fortran += '\n'
+  backsolve_L_y_eq_b_fortran += '  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)\n'
+  backsolve_L_y_eq_b_fortran += '  !$acc loop gang vector\n'
   backsolve_L_y_eq_b_fortran += '  do i = 1, ncell\n'
   for(var row = 0; row < logicalFactorization.size; row++){
     let fortran_row = row + 1;
@@ -987,6 +992,7 @@ function constructSparseLUFactor(req, res, next) {
     }
   }
   backsolve_L_y_eq_b_fortran += '  end do\n'
+  backsolve_L_y_eq_b_fortran += '  !$acc end parallel\n'
   backsolve_L_y_eq_b_fortran += '\n'
   backsolve_L_y_eq_b_fortran += 'end subroutine backsolve_L_y_eq_b\n\n\n';
   //console.log(backsolve_L_y_eq_b_fortran);
@@ -994,13 +1000,16 @@ function constructSparseLUFactor(req, res, next) {
 
   var backsolve_U_x_eq_y_fortran = '\nsubroutine backsolve_U_x_eq_y(LU,y,x)\n';
   backsolve_U_x_eq_y_fortran +='\n'
-  backsolve_U_x_eq_y_fortran +='  real(r8), intent(in) :: LU(:,:)\n'
-  backsolve_U_x_eq_y_fortran +='  real(r8), intent(in) :: y(:,:)\n'
-  backsolve_U_x_eq_y_fortran +='  real(r8), intent(out) :: x(:,:)\n'
-  backsolve_U_x_eq_y_fortran +='  real(r8) :: temporary\n'
+  backsolve_U_x_eq_y_fortran +='  real(r8), intent(in) :: LU(ncell,number_sparse_factor_elements)\n'
+  backsolve_U_x_eq_y_fortran +='  real(r8), intent(in) :: y(ncell,number_of_species)\n'
+  backsolve_U_x_eq_y_fortran +='  real(r8), intent(out) :: x(ncell,number_of_species)\n'
   backsolve_U_x_eq_y_fortran +='\n'
+  backsolve_U_x_eq_y_fortran +='  ! Local variables\n'
+  backsolve_U_x_eq_y_fortran +='  real(r8) :: temporary\n'
   backsolve_U_x_eq_y_fortran +='  integer :: i\n'
   backsolve_U_x_eq_y_fortran +='\n'
+  backsolve_U_x_eq_y_fortran +='  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)\n'
+  backsolve_U_x_eq_y_fortran +='  !$acc loop gang vector\n'
   backsolve_U_x_eq_y_fortran +='  do i = 1, ncell\n'
   for(var row = logicalFactorization.size-1; row > -1; row--){
     let fortran_row = row + 1;
@@ -1016,6 +1025,7 @@ function constructSparseLUFactor(req, res, next) {
     backsolve_U_x_eq_y_fortran +='    x(i,'+fortran_row+') = LU(i,'+LUIndex+') * temporary\n';
   }
   backsolve_U_x_eq_y_fortran +='  end do\n'
+  backsolve_U_x_eq_y_fortran +='  !$acc end parallel\n'
   backsolve_U_x_eq_y_fortran +='\n'
   backsolve_U_x_eq_y_fortran +='end subroutine backsolve_U_x_eq_y\n\n\n';
   //console.log(backsolve_u_x_eq_y_fortran);
@@ -1023,12 +1033,20 @@ function constructSparseLUFactor(req, res, next) {
   let solve_string = "\n";
   solve_string += "subroutine solve(LU,x,b)\n";
   solve_string += "\n";
-  solve_string += "  real(r8), intent(in) :: LU(:,:), b(:,:) ! solve LU * x = b\n";
-  solve_string += "  real(r8), intent(out) :: x(:,:)\n\n";
-  solve_string += "  real(r8) :: y(ncell,size(b,2))\n\n";
+  solve_string += "  real(r8), intent(in) :: LU(ncell,number_sparse_factor_elements), &\n";
+  solve_string += "                          b(ncell,number_of_species) ! solve LU * x = b\n";
+  solve_string += "  real(r8), intent(out) :: x(ncell,number_of_species)\n\n";
+  solve_string += "  ! Local variables\n";
+  solve_string += "  real(r8) :: y(ncell,number_of_species)\n";
+  solve_string += "\n";
+  solve_string += "  !$acc enter data create(y) async(STREAM0)\n";
+  solve_string += "\n";
   solve_string += "  call backsolve_L_y_eq_b(LU, b, y)\n";
   solve_string += "  call backsolve_U_x_eq_y(LU, y, x)\n";
-  solve_string += "\nend subroutine solve\n\n";
+  solve_string += "\n";
+  solve_string += "  !$acc exit data delete(y) async(STREAM0)\n";
+  solve_string += "\n";
+  solve_string += "end subroutine solve\n\n";
 
   var reorderedMolecules = [];
   for(let i = 0; i< molecules.length; i++){
@@ -1048,15 +1066,18 @@ function constructSparseLUFactor(req, res, next) {
 
   let indexOffset = 1; //convert to fortran
   let module = "module factor_solve_utilities\n\n";
-  module += "use musica_constants, only : r8 =>musica_dk\n"
-  module += "use constants,        only : ncell=>kNumberOfGridCells\n\n";
-  module += "! This code was generated by Preprocessor revision "+revision+"\n"
-  module += "! Preprocessor source "+git_remote+"\n\n"
+  module += "use musica_constants,   only : r8 =>musica_dk\n"
+  module += "use constants,          only : ncell=>kNumberOfGridCells, VLEN, &\n";
+  module += "                               STREAM0\n\n";
+  module += "! This code was generated by Preprocessor revision "+revision+"\n";
+  module += "! Preprocessor source "+git_remote+"\n\n";
   module += "! "+res.locals.tagDescription+"\n";
   module += "! "+res.locals.tagStats+"\n\n";
   module += "  implicit none\n\n";
-  module += "  integer, parameter :: number_sparse_factor_elements = "+logicalFactorization.numberSparseFactorElements+"\n\n";
-  module += "  public :: factor, solve\n\n"
+  module += "  public :: factor, solve\n";
+  module += "\n";
+  module += "  integer, parameter, public  :: number_of_species                  = "+reorderedMolecules.length+"\n"
+  module += "  integer, parameter, public  :: number_sparse_factor_elements      = "+logicalFactorization.numberSparseFactorElements+"\n\n";
   module += "  contains\n\n";
   module += backsolve_L_y_eq_b_fortran;
   module += backsolve_U_x_eq_y_fortran;
