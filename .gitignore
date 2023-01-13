@@ -1,3 +1,10 @@
+**/nohup.out
+mechanisms/*
+!mechanisms/chapman
+mechanisms/chapman/output
+!mechanisms/mozart-ts1
+mechanisms/mozart-ts1/output
+
 # Logs
 logs
 *.log
