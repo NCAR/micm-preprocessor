@@ -1219,7 +1219,7 @@ function toCode(req, res, next) {
     init_jac_code_string += '  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)\n';
     init_jac_code_string += '  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)\n';
     init_jac_code_string += '  real(r8), intent(in) :: number_density(ncell,number_of_species)\n';
-    init_jac_code_string += '  real(r8), intent(in) :: number_density_air(ncell,number_of_species)\n';
+    init_jac_code_string += '  real(r8), intent(in) :: number_density_air(ncell)\n';
     init_jac_code_string += '\n';
     init_jac_code_string += '  ! Local variables\n';
     init_jac_code_string += '  integer :: i, j \n';
